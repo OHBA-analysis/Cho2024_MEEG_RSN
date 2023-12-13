@@ -34,7 +34,7 @@ if __name__ == "__main__":
     BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
     output_dir = f"{BASE_DIR}/results/dynamic/camcan/state{n_states}/run{run}"
     if data_type != "full":
-        output_dir = output_dir.replace("dynamic", "reprod")
+        output_dir = output_dir.replace("dynamic", f"reprod/{data_type}")
     os.makedirs(output_dir, exist_ok=True)
 
     # Set output sub-directory paths
