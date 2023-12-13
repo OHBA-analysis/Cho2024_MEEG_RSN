@@ -4,12 +4,12 @@
 
 # Set up dependencies
 import os
-import pickle
 import numpy as np
 from sys import argv
 from osl_dynamics import data
 from osl_dynamics.inference import tf_ops
 from osl_dynamics.models.hmm import Config, Model
+from utils.data import load_data, save_data
 
 
 if __name__ == "__main__":
@@ -19,10 +19,13 @@ if __name__ == "__main__":
     print("Step 1 - Setting up ...")
 
     # Set run name
-    if len(argv) != 3:
-        raise ValueError("Need to pass two arguments: run ID & number of states (e.g., python script.py 1 6)")
+    if len(argv) != 4:
+        raise ValueError("Need to pass two arguments: run ID, number of states, and data type (e.g., python script.py 1 6 full)")
     run = argv[1] # run ID
     n_states = int(argv[2]) # number of states
+    data_type = argv[3]
+    if data_type not in ["full", "split1", "split2"]:
+        raise ValueError("data_type should be either 'full', 'split1', or 'split2'.")
 
     # Set up GPU
     tf_ops.gpu_growth()
@@ -30,6 +33,8 @@ if __name__ == "__main__":
     # Set output direcotry path
     BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
     output_dir = f"{BASE_DIR}/results/dynamic/lemon/state{n_states}/run{run}"
+    if data_type != "full":
+        output_dir = output_dir.replace("dynamic", "reprod")
     os.makedirs(output_dir, exist_ok=True)
 
     # Set output sub-directory paths
@@ -63,13 +68,18 @@ if __name__ == "__main__":
 
     # Load data
     dataset_dir = "/well/woolrich/projects/lemon/scho23/src_ec"
-    with open(os.path.join(BASE_DIR, "data/age_group_idx.pkl"), "rb") as input_path:
-        age_group_idx = pickle.load(input_path)
-    input_path.close()
-    subject_ids  = np.concatenate((
-        age_group_idx["eeg"]["subject_ids_young"],
-        age_group_idx["eeg"]["subject_ids_old"],
-    )) # subjects age-matched with MEG Cam-CAN
+    if data_type == "full":
+        age_group_idx = load_data(os.path.join(BASE_DIR, "data/age_group_idx.pkl"))
+        subject_ids  = np.concatenate((
+            age_group_idx["eeg"]["subject_ids_young"],
+            age_group_idx["eeg"]["subject_ids_old"],
+        )) # subjects age-matched with MEG Cam-CAN
+    else:
+        age_group_idx = load_data(os.path.join(BASE_DIR, "data/age_group_split_idx.pkl"))
+        subject_ids = np.concatenate((
+            age_group_idx["eeg"][data_type]["subject_ids_young"],
+            age_group_idx["eeg"][data_type]["subject_ids_old"],
+        ))
     file_names = [os.path.join(dataset_dir,  f"{id}/sflip_parc-raw.npy") for id in subject_ids]
     print(f"Total number of subjects available: {len(file_names)}")
 
@@ -104,8 +114,7 @@ if __name__ == "__main__":
     model.save(f"{model_dir}/trained_model")
 
     # Save training history
-    with open(f"{model_dir}/history.pkl", "wb") as file:
-        pickle.dump(history, file)
+    save_data(history, f"{model_dir}/history.pkl")
 
     # -------- [5] ---------- #
     #      Save results       #
@@ -132,11 +141,7 @@ if __name__ == "__main__":
         "covariance": cov,
         "training_time_series": ts,
     }
-
-    with open(save_dir + "/lemon_hmm.pkl", "wb") as output_path:
-        pickle.dump(outputs, output_path)
-    output_path.close()
-
+    save_data(outputs, os.path.join(save_dir, "lemon_hmm.pkl"))
     np.save(save_dir + "/free_energy.npy", free_energy)
 
     # ------- [6] ------- #
