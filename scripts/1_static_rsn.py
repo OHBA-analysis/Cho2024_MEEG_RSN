@@ -4,11 +4,11 @@
 
 # Set up dependencies
 import os
-import pickle
 import numpy as np
 from sys import argv
 from osl_dynamics.analysis import static, power, connectivity
 from osl_dynamics.data import Data
+from utils.data import load_data, save_data
 from utils.static import compute_aec
 from utils.statistics import fit_glm
 from utils.visualize import StaticVisualizer, _colormap_transparent
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     print(f"[INFO] Data Modality: {modality.upper()}")
 
     # Set directory paths
-    BASE_DIR = "/well/woolrich/users/olt015/EEG_RSN"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
     PROJECT_DIR = "/well/woolrich/projects"
     if modality == "eeg":
         DATA_DIR = os.path.join(PROJECT_DIR, "lemon/scho23")
@@ -43,8 +43,7 @@ if __name__ == "__main__":
 
     # Load subject information
     print("(Step 1-1) Loading subject information ...")
-    with open(os.path.join(BASE_DIR, "data/age_group_idx.pkl"), "rb") as input_path:
-        age_group_idx = pickle.load(input_path)
+    age_group_idx = load_data(os.path.join(BASE_DIR, "data/age_group_idx.pkl"))
     subject_ids_young = age_group_idx[modality]["subject_ids_young"]
     subject_ids_old = age_group_idx[modality]["subject_ids_old"]
     subject_ids = np.concatenate((subject_ids_young, subject_ids_old))
@@ -97,8 +96,7 @@ if __name__ == "__main__":
     if os.path.exists(save_path):
         # Load static network features
         print("(Step 2-1) Loading static network features ...")
-        with open(save_path, "rb") as save_path:
-            static_network_features = pickle.load(save_path)
+        static_network_features = load_data(save_path)
         freqs = static_network_features["freqs"]
         psds = static_network_features["psds"]
         weights = static_network_features["weights"]
@@ -144,8 +142,7 @@ if __name__ == "__main__":
             "power_maps": power_maps,
             "conn_maps": conn_maps,
         }
-        with open(save_path, "wb") as output_path:
-            pickle.dump(output, output_path)
+        save_data(output, save_path)
 
     # -------- [3] --------- #
     #      GLM Fitting       #
