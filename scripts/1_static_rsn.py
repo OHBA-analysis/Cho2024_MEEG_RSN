@@ -10,7 +10,6 @@ from osl_dynamics.analysis import static, power, connectivity
 from osl_dynamics.data import Data
 from utils.data import load_data, save_data
 from utils.static import compute_aec
-from utils.statistics import fit_glm
 from utils.visualize import StaticVisualizer, _colormap_transparent
 
 
@@ -52,11 +51,6 @@ if __name__ == "__main__":
         len(subject_ids_young),
         len(subject_ids_old),
     ))
-
-    # Get group information
-    group_assignments = np.zeros(len(subject_ids),)
-    group_assignments[len(subject_ids_young):] = 1 # Group 1: old
-    group_assignments[:len(subject_ids_young)] = 2 # Group 2: young
 
     # Get data files
     print("(Step 1-2) Getting data files ...")
@@ -144,54 +138,17 @@ if __name__ == "__main__":
         }
         save_data(output, save_path)
 
-    # -------- [3] --------- #
-    #      GLM Fitting       #
-    # ---------------------- #
-    print("\n*** STEP 3: FITTING GLM ***")
-
-    ppsds = np.mean(psds, axis=1) # parcel-averaged PSDs
-    # dim: (n_subjects, n_parcels, n_freqs) -> (n_subjects, n_freqs)
-    psd_model, psd_design, psd_data = fit_glm(
-        ppsds,
-        subject_ids,
-        group_assignments,
-        modality,
-        dimension_labels=["Subjects", "Frequency"],
-        plot_verbose=True,
-        save_path=os.path.join(SAVE_DIR, "design_matrix_psd.png"),
-    )
-
-    power_model, power_design, power_data = fit_glm(
-        power_maps["wide"],
-        subject_ids,
-        group_assignments,
-        modality=modality,
-        dimension_labels=["Subjects", "Parcels"],
-        plot_verbose=True,
-        save_path=os.path.join(SAVE_DIR, "design_matrix_power.png"),
-    )
-
-    conn_model, conn_design, conn_data = fit_glm(
-        conn_maps,
-        subject_ids,
-        group_assignments,
-        modality=modality,
-        dimension_labels=["Subjects", "Parcels", "Parcels"],
-        plot_verbose=True,
-        save_path=os.path.join(SAVE_DIR, "design_matrix_conn.png"),
-    )
-
-    # --------- [4] ---------- #
+    # --------- [3] ---------- #
     #      Visualization       #
     # ------------------------ #
-    print("\n*** STEP 4: VISUALIZATION ***")
+    print("\n*** STEP 3: VISUALIZATION ***")
 
     # Set up visualization tools
     SV = StaticVisualizer()
     cmap_hot_tp = _colormap_transparent("gist_heat")
 
     # Plot static wide-band power map (averaged over all subjects)
-    gpower_all = power_model.copes[1] # dim: (n_parcels,)
+    gpower_all = np.mean(power_maps["wide"], axis=0) # dim: (n_parcels,)
     gpower_range = np.abs(max(gpower_all) - min(gpower_all))
 
     SV.plot_power_map(
@@ -206,7 +163,7 @@ if __name__ == "__main__":
     )
 
     # Plot static wide-band AEC map (averaged over all subjects)
-    gconn_all = conn_model.copes[1] # dim: (n_parcels, n_parcels)
+    gconn_all = np.mean(conn_maps, axis=0) # dim: (n_parcels, n_parcels)
     manual_treshold = True
     if manual_treshold:
         gconn_all = connectivity.threshold(gconn_all, percentile=95) # select top 5%
@@ -220,8 +177,8 @@ if __name__ == "__main__":
     )
 
     # Plot static power spectral densities (averaged over all subjects)
-    gpsd_all = psd_model.copes[1] # dim: (n_freqs,)
-    gpsd_sem = np.sqrt(psd_model.varcopes[1]) # dim: (n_freqs,)
+    gpsd_all = np.mean(psds, axis=(1, 0)) # dim: (n_freqs,)
+    gpsd_sem = np.std(np.mean(psds, axis=1), axis=0) / np.sqrt(len(psds)) # dim: (n_freqs,)
 
     SV.plot_psd(
         freqs=freqs,
