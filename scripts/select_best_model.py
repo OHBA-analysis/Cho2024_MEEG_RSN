@@ -12,17 +12,20 @@ from utils.visualize import plot_loss_curve
 
 if __name__ == "__main__":
     # Set hyperparameters
-    if len(argv) != 4:
-        print("Need to pass three arguments: dataset name, number of states, and run IDs"
-               + " (e.g., python script.py lemon 6 0-9)")
-    data_name = argv[1] # name of dataset
-    n_states = int(argv[2]) # number of states
-    run_ids = list(map(int, argv[3].split("-"))) # range of runs to compare
+    if len(argv) != 5:
+        print("Need to pass three arguments: data type, dataset name, number of states,"
+               + " and run IDs (e.g., python script.py full lemon 6 0-9)")
+    data_type = argv[1] # type of dataset
+    data_name = argv[2] # name of dataset
+    n_states = int(argv[3]) # number of states
+    run_ids = list(map(int, argv[4].split("-"))) # range of runs to compare
     print(f"[INFO] Dataset Name: {data_name.upper()} | State #: {n_states} |"
           + f" Run: run{run_ids[0]} - run{run_ids[1]}")
     
     # Set directories
     BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN/results/dynamic"
+    if data_type != "full":
+        BASE_DIR = BASE_DIR.replace("dynamic", f"reprod/{data_type}")
     DATA_DIR = BASE_DIR + f"/{data_name}/state{n_states}"
     data_path = DATA_DIR + f"/run{{0}}/model/results/free_energy.npy"
 
