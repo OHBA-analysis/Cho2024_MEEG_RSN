@@ -135,6 +135,50 @@ def plot_age_distributions(ages_young, ages_old, modality, nbins="auto", filenam
 
     return None
 
+def plot_nnmf_components(freqs, components, filename, comp_lbls=None, fontsize=18):
+    """Plots NNMF spectral component(s) in one plot.
+
+    Parameters
+    ----------
+    freqs : np.ndarray
+        Array of frequencies in the frequency axis. Shape is (n_freqs,).
+    components : np.ndarray
+        Decomposed spectral components. Shape is (n_components, n_freqs) 
+        or (n_freqs,).
+    filename : str
+        File name to be used when saving a figure object.
+    comp_lbls : list of str
+        Legend labels for each component. Defaults to None.
+    fontsize : int
+        Fontsize for a plot. Defaults to 18.
+    """
+    
+    # Validation
+    if components.ndim < 2:
+        components = components[np.newaxis, ...]
+    n_components = components.shape[0]
+    
+    if comp_lbls is None:
+        comp_lbls = [None] * n_components
+    
+    # Set colormap
+    cmap = sns.color_palette("colorblind", n_colors=n_components)
+
+    # Visualize spectral components
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    for n in range(n_components):
+        ax.plot(freqs, components[n, :], color=cmap[n], lw=2, label=comp_lbls[n])
+        ax.fill_between(freqs, components[n, :], color=cmap[n], alpha=0.3)
+    ax.set_xlabel("Frequency (Hz)", fontsize=fontsize)
+    ax.set_ylabel("Spectral Mode Magnitude", fontsize=fontsize)
+    ax.legend(loc="best", fontsize=fontsize)
+    ax.tick_params(labelsize=fontsize)
+    plt.tight_layout()
+    fig.savefig(filename, transparent=True)
+    plt.close(fig)
+    
+    return None
+
 class StaticVisualizer():
     """Class for visualizing static network features"""
     def __init__(self):
