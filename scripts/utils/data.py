@@ -207,3 +207,53 @@ def load_headsize_information(subject_ids, modality):
         raw.close()
 
     return np.array(headsizes)
+
+def load_order(modality, n_states, data_type, run_id):
+    """Extract a state/mode order of a given run written on the
+       excel sheet. This order can be used to match the states/
+       modes of a run to those of the reference run.
+
+    Parameters
+    ----------
+    modality : str
+        Type of the modality. Should be either "eeg" or "meg".
+    n_states : int
+        Number of the states. Should be 6, 8, or 10.
+    data_type : str
+        Type of the dataset. Should be "full", "split1", or "split2".
+    run_id : int
+        Number of the model run.
+
+    Returns
+    -------
+    order : list of int
+        Order of the states/modes matched to the reference run.
+        Shape is (n_states,). If there is no change in order, None is
+        returned.
+    """
+
+    # Validation
+    if modality not in ["eeg", "meg"]:
+        raise ValueError("modality should be either 'egg' or 'meg'.")
+    if n_states not in [6, 8, 10]:
+        raise ValueError("available # states are 6, 8, and 10.")
+    if data_type not in ["full", "split1", "split2"]:
+        raise ValueError("input data type not unavailable.")
+    
+    # Get list of orders
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
+    df = pd.read_excel(os.path.join(BASE_DIR, "data/run_orders.xlsx"))
+
+    # Extract the order of a given run
+    index = np.logical_and.reduce((
+        df.Modality == modality.upper(),
+        df.Data_Type == data_type,
+        df.Run_ID == run_id,
+    ))
+    order = df.Order[index].values[0]
+    convert_to_list = lambda x: [int(n) for n in x[1:-1].split(',')]
+    order = convert_to_list(order)
+    if order == list(np.arange(n_states)):
+        order = None
+    
+    return order
