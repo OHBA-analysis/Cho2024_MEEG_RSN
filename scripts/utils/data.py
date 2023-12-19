@@ -247,6 +247,7 @@ def load_order(modality, n_states, data_type, run_id):
     # Extract the order of a given run
     index = np.logical_and.reduce((
         df.Modality == modality.upper(),
+        df.N_States == n_states,
         df.Data_Type == data_type,
         df.Run_ID == run_id,
     ))
