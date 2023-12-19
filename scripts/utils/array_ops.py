@@ -3,6 +3,7 @@
 """
 
 import numpy as np
+from decimal import Decimal, ROUND_HALF_UP
 
 def round_nonzero_decimal(num, precision=1, method="round"):
     """
@@ -44,6 +45,36 @@ def round_nonzero_decimal(num, precision=1, method="round"):
     elif method == "ceil":
         round_num = np.true_divide(np.ceil(num * 10 ** precision), 10 ** precision)
     
+    return round_num
+
+def round_up_half(num, decimals=0):
+    """
+    Round a number using a 'round half up' rule. This function always
+    round up the half-way values of a number.
+
+    NOTE: This function is added because Python's default round() 
+    and NumPy's np.round() functions use 'round half to even' method.
+    Their implementations mitigate positive/negative bias and bias 
+    toward/away from zero, while this function does not. Hence, this 
+    function should be preferentially only used for the visualization 
+    purposes.
+
+    Parameters
+    ----------
+    num : float
+        Float number.
+    decimals : int
+        Number of decimals to keep. Defaults to 0.
+
+    Returns
+    -------
+    round_num : float
+        Rounded number.
+    """
+    multiplier = 10 ** decimals
+    round_num = float(
+        Decimal(num * multiplier).quantize(Decimal('1'), rounding=ROUND_HALF_UP) / multiplier
+    )
     return round_num
 
 def split_half(array):
