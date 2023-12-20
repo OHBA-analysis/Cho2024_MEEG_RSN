@@ -19,15 +19,20 @@ if __name__ == "__main__":
     print("*** STEP 1: SETTINGS ***")
 
     # Set hyperparameters
-    if len(argv) != 4:
-        print("Need to pass one argument: data modality, number of states, and run ID (e.g., python script.py eeg 6 0)")
+    if len(argv) != 5:
+        print("Need to pass four arguments: data modality, number of states, run ID, and data type " 
+              + "(e.g., python script.py eeg 6 0 full)")
         exit()
     modality = argv[1] # data modality
     n_states = int(argv[2]) # number of states
     run_id = int(argv[3])
+    data_type = argv[4]
     if modality not in ["eeg", "meg"]:
         raise ValueError("modality should be either 'eeg' or 'meg'.")
-    print(f"[INFO] Data Modality: {modality.upper()} | State #: {n_states} | Run ID: run{run_id}")
+    if data_type not in ["full", "split1", "split2"]:
+        raise ValueError("invalid data type.")
+    print(f"[INFO] Data Modality: {modality.upper()} | State #: {n_states} | Run ID: run{run_id} "
+          + "| Data Type: {data_type}")
 
     # Define dataset name
     if modality == "eeg":
@@ -37,6 +42,8 @@ if __name__ == "__main__":
     # Set directory paths
     BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
     DATA_DIR = BASE_DIR + f"/results/dynamic/{data_name}/state{n_states}/run{run_id}"
+    if data_type != "full":
+        DATA_DIR = DATA_DIR.replace("dynamic", f"reprod/{data_type}")
 
     # Load data
     data = load_data(os.path.join(DATA_DIR, f"model/results/{data_name}_hmm.pkl"))
@@ -53,9 +60,14 @@ if __name__ == "__main__":
 
     # Load group information
     print("(Step 1-1) Loading subject information ...")
-    age_group_idx = load_data(os.path.join(BASE_DIR, "data/age_group_idx.pkl"))
-    subject_ids_young = age_group_idx[modality]["subject_ids_young"]
-    subject_ids_old = age_group_idx[modality]["subject_ids_old"]
+    if data_type == "full":
+        age_group_idx = load_data(os.path.join(BASE_DIR, "data/age_group_idx.pkl"))
+        subject_ids_young = age_group_idx[modality]["subject_ids_young"]
+        subject_ids_old = age_group_idx[modality]["subject_ids_old"]
+    else:
+        age_group_idx = load_data(os.path.join(BASE_DIR, "data/age_group_split_idx.pkl"))
+        subject_ids_young = age_group_idx[modality][data_type]["subject_ids_young"]
+        subject_ids_old = age_group_idx[modality][data_type]["subject_ids_old"]
     subject_ids = np.concatenate((subject_ids_young, subject_ids_old))
     print("Total # of subjects: {} (Young: {}, Old: {})".format(
         len(subject_ids),
@@ -88,7 +100,7 @@ if __name__ == "__main__":
 
     save_path = os.path.join(
         BASE_DIR, "data",
-        f"dynamic_network_features_{modality}_state{n_states}_run{run_id}.pkl"
+        f"dynamic_{modality}_{n_states}states_run{run_id}_{data_type}.pkl"
     )
 
     if os.path.exists(save_path):
