@@ -129,10 +129,14 @@ if __name__ == "__main__":
 
         # Compute state-specific power maps
         print("(Step 3-2) Computing state-specific power maps ...")
-        power_maps = analysis.power.variance_from_spectra(
-            freqs, psds, frequency_range=[1.5, 20],
-        )
-        # dim: (n_subjects, n_states, n_channels)
+        power_maps = dict()
+        freq_ranges = [[1.5, 20], [1.5, 4], [4, 8], [8, 13], [13, 20]]
+        freq_bands = ["wide", "delta", "theta", "alpha", "beta"]
+        for n, freq_range in enumerate(freq_ranges):
+            power_maps = analysis.power.variance_from_spectra(
+                freqs, psds, frequency_range=freq_range,
+            )
+            # dim: (n_subjects, n_states, n_channels)
 
         # Compute state-specific coherence maps
         print("(Step 3-3) Computing state-specific coherence maps ...")
@@ -168,7 +172,7 @@ if __name__ == "__main__":
 
     # Plot wide-band power maps (averaged over all subjects)
     print("(Step 4-1) Plotting power maps ...")
-    power_maps -= np.average(power_maps, axis=1, weights=gfo, keepdims=True)
+    power_maps = power_maps["wide"] - np.average(power_maps["wide"], axis=1, weights=gfo, keepdims=True)
     # dim: (n_subjects, n_states, n_channels)
     gpower_all = np.mean(power_maps, axis=0) # dim: (n_states, n_channels)
 
