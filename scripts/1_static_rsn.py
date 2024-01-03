@@ -114,7 +114,7 @@ if __name__ == "__main__":
         # Compute subject-specific static power maps
         print("(Step 2-2) Computing static power maps ...")
         power_maps = dict()
-        freq_ranges = [[1.5, 45], [1.5, 4], [4, 8], [8, 13], [13, 30]]
+        freq_ranges = [[1.5, 20], [1.5, 4], [4, 8], [8, 13], [13, 20]]
         freq_bands = ["wide", "delta", "theta", "alpha", "beta"]
         for n, freq_range in enumerate(freq_ranges):
             power_maps[freq_bands[n]] = power.variance_from_spectra(
@@ -124,7 +124,9 @@ if __name__ == "__main__":
 
         # Compute subject-specific static AEC maps
         print("(Step 2-3) Computing static AEC maps ...")
-        conn_maps = compute_aec(input_data, Fs, freq_range=[1.5, 45], tmp_dir=TMP_DIR)
+        conn_maps = compute_aec(
+            input_data, Fs, freq_range=[1.5, 20], tmp_dir=TMP_DIR
+        )
         # dim: (n_subjects, n_parcles, n_parcels)
 
         # Save computed features
@@ -164,10 +166,10 @@ if __name__ == "__main__":
 
     # Plot static wide-band AEC map (averaged over all subjects)
     gconn_all = np.mean(conn_maps, axis=0) # dim: (n_parcels, n_parcels)
-    manual_treshold = True
-    if manual_treshold:
-        gconn_all = connectivity.threshold(gconn_all, percentile=95) # select top 5%
-    else: np.fill_diagonal(gconn_all, 0)
+    gconn_all = connectivity.threshold(
+        gconn_all,
+        percentile=95
+    ) # select top 5%
 
     SV.plot_aec_conn_map(
         connectivity_map=gconn_all,
