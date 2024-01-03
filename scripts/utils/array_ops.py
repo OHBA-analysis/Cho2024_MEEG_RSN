@@ -7,7 +7,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 def round_nonzero_decimal(num, precision=1, method="round"):
     """
-    Round an input decimal number starting from its first non-zero value.
+    Rounds an input decimal number starting from its first non-zero value.
 
     For instance, with precision of 1, we have:
     0.09324 -> 0.09
@@ -49,7 +49,7 @@ def round_nonzero_decimal(num, precision=1, method="round"):
 
 def round_up_half(num, decimals=0):
     """
-    Round a number using a 'round half up' rule. This function always
+    Rounds a number using a 'round half up' rule. This function always
     round up the half-way values of a number.
 
     NOTE: This function is added because Python's default round() 
@@ -79,7 +79,7 @@ def round_up_half(num, decimals=0):
 
 def split_half(array):
     """
-    Split an array into half after a random shuffle. The random 
+    Splits an array into half after a random shuffle. The random 
     shuffling uses the Fisher-Yates shuffle based on a uniform 
     distribution.
 
@@ -102,3 +102,34 @@ def split_half(array):
     second_half = array[len(array) // 2:]
     
     return first_half, second_half
+
+def reorder_matrix_by_indices(matrix, order):
+    """
+    Reorders rows and columns of a matrix by a given order.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        A square matrix to be reordered. Shape must be (N, N).
+    order : list
+        Order of a matrix rows/columns to be rearranged.
+
+    Returns
+    -------
+    matrix_reordered : np.ndarray
+        Reordered matrix with rows and columns rearranged by 
+        the given order. Shape is (N, N).
+    """
+
+    # Validation
+    if matrix.shape[0] != matrix.shape[1]:
+        raise ValueError("matrix should be a square matrix.")
+
+    # Create a mapping from the prior order to the current order
+    current_order = list(np.arange(len(order)))
+    mapping = [order.index(item) for item in current_order]
+    
+    # Rearrange rows and columns of matrix to match the given order
+    matrix_reordered = matrix[np.ix_(mapping, mapping)]
+
+    return matrix_reordered
