@@ -120,7 +120,7 @@ if __name__ == "__main__":
             power_maps[freq_bands[n]] = power.variance_from_spectra(
                 freqs, psds, frequency_range=freq_range
             )
-        # dim: (n_subjects, n_parcels)
+            # dim: (n_subjects, n_parcels)
 
         # Compute subject-specific static AEC maps
         print("(Step 2-3) Computing static AEC maps ...")
