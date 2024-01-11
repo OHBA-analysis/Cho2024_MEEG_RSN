@@ -50,7 +50,11 @@ if __name__ == "__main__":
             "split2": {"subject_ids_young": meg_ids_y2, "subject_ids_old": meg_ids_o2},
         },
     }
-    save_data(output, os.path.join(SAVE_DIR, "age_group_split_idx.pkl"))
+    save_path = os.path.join(SAVE_DIR, "age_group_split_idx.pkl")
+    if not os.path.exists(save_path):
+        save_data(output, save_path)
+    else:
+        print("Split-half indices already saved. Saving skipped.")
 
     # Visualize age distributions
     verbose = False
