@@ -110,7 +110,7 @@ if __name__ == "__main__":
         n_jobs = 16 # number of CPUs to use for parallel processing
         freqs, psds, cohs, weights = analysis.spectral.multitaper_spectra(
             data=ts,
-            alpha=stc,
+            alpha=alpha, # state time course computed within the function
             sampling_frequency=Fs,
             time_half_bandwidth=4,
             n_tapers=7,
