@@ -32,7 +32,7 @@ if __name__ == "__main__":
     if data_type not in ["full", "split1", "split2"]:
         raise ValueError("invalid data type.")
     print(f"[INFO] Data Modality: {modality.upper()} | State #: {n_states} | Run ID: run{run_id} "
-          + "| Data Type: {data_type}")
+          + f"| Data Type: {data_type}")
 
     # Define dataset name
     if modality == "eeg":
@@ -51,12 +51,7 @@ if __name__ == "__main__":
     ts = data["training_time_series"]
 
     # Get state orders for the specified model run
-    order = load_order(
-        modality,
-        n_states,
-        data_type="full",
-        run_id=run_id,
-    )
+    order = load_order(modality, n_states, data_type, run_id)
 
     # Load group information
     print("(Step 1-1) Loading subject information ...")
@@ -133,7 +128,7 @@ if __name__ == "__main__":
         freq_ranges = [[1.5, 20], [1.5, 4], [4, 8], [8, 13], [13, 20]]
         freq_bands = ["wide", "delta", "theta", "alpha", "beta"]
         for n, freq_range in enumerate(freq_ranges):
-            power_maps = analysis.power.variance_from_spectra(
+            power_maps[freq_bands[n]] = analysis.power.variance_from_spectra(
                 freqs, psds, frequency_range=freq_range,
             )
             # dim: (n_subjects, n_states, n_channels)
