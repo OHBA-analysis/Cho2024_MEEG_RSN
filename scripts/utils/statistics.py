@@ -4,6 +4,7 @@
 
 import numpy as np
 import glmtools as glm
+from scipy import stats
 from utils.data import load_sex_information, load_headsize_information
 
 def fit_glm(
@@ -195,3 +196,74 @@ def cluster_perm_test(
     if return_perm:
         return obs, clusters, perm
     return obs, clusters
+
+def max_stat_perm_test(
+        glm_model,
+        glm_data,
+        design_matrix,
+        pooled_dims,
+        contrast_idx,
+        n_perm=10000,
+        metric="tstats",
+        n_jobs=1,
+        return_perm=False,
+    ):
+    """Perform a max-t permutation test to evaluate statistical significance 
+       for the given contrast.
+
+    Parameters
+    ----------
+    glm_model : glmtools.fit.OLSModel
+        A fitted GLM OLS model.
+    glm_data : glmtools.data.TrialGLMData
+        Data object for GLM modelling.
+    design_matrix : glmtools.design.DesignConfig
+        Design matrix object for GLM modelling.
+    pooled_dims : int or tuples
+        Dimension(s) to pool over.
+    contrast_idx : int
+        Index indicating which contrast to use. Dependent on glm_model.
+    n_perm : int, optional
+        Number of iterations to permute. Defaults to 10,000.
+    metric : str, optional
+        Metric to use to build the null distribution. Can be 'tstats' or 'copes'.
+    n_jobs : int, optional
+        Number of processes to run in parallel.
+    return_perm : bool, optional
+        Whether to return a glmtools permutation object. Defaults to False.
+    
+    Returns
+    -------
+    pvalues : np.ndarray
+        P-values for the features. Shape is (n_features1, n_features2, ...).
+    perm : glm.permutations.MaxStatPermutation
+        Permutation object in the `glmtools` package.
+    """
+
+    # Run permutations and get null distributions
+    perm = glm.permutations.MaxStatPermutation(
+        design_matrix,
+        glm_data,
+        contrast_idx=contrast_idx,
+        nperms=n_perm,
+        metric=metric,
+        tail=0, # two-sided test
+        pooled_dims=pooled_dims,
+        nprocesses=n_jobs,
+    )
+    null_dist = perm.nulls
+
+    # Get p-values
+    if metric == "tstats":
+        print("Using tstats as metric")
+        tstats = abs(glm_model.tstats[0])
+        percentiles = stats.percentileofscore(null_dist, tstats)
+    elif metric == "copes":
+        print("Using copes as metric")
+        copes = abs(glm_model.copes[0])
+        percentiles = stats.percentileofscore(null_dist, copes)
+    pvalues = 1 - percentiles / 100
+
+    if return_perm:
+        return pvalues, perm
+    return pvalues
