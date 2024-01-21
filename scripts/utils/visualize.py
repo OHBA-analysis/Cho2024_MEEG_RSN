@@ -82,6 +82,27 @@ def _colormap_null(name):
     cmap = LinearSegmentedColormap.from_list(name="custom_cmap", colors=colors)
 
     return cmap
+
+def _format_colorbar_ticks(ax):
+    """Formats x-axis ticks in the colobar such that integer values are 
+    plotted, instead of decimal values.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        A colobar axis to format.
+    """
+
+    if np.any(np.abs(ax.get_xlim()) < 1):
+        hmin = round_nonzero_decimal(ax.get_xlim()[0], method="ceil") # ceiling for negative values
+        hmax = round_nonzero_decimal(ax.get_xlim()[1], method="floor") # floor for positive values
+        ax.set_xticks(np.array([hmin, 0, hmax]))
+    else:
+        ax.set_xticks(
+            [round_up_half(val) for val in ax.get_xticks()[1:-1]]
+        )
+    
+    return None
     
 def plot_loss_curve(loss, x_step=5, save_dir=None):
     """Plots a training/validation/test loss curve.
@@ -357,6 +378,7 @@ class StaticVisualizer():
         cb_ax.set_position(new_pos)
 
         # Set colorbar styles
+        _format_colorbar_ticks(cb_ax)
         cb_ax.ticklabel_format(style='scientific', axis='x', scilimits=(-2, 4))
         cb_ax.tick_params(labelsize=fontsize)
         cb_ax.xaxis.offsetText.set_fontsize(fontsize)
@@ -469,27 +491,6 @@ class DynamicVisualizer():
         self.mask_file = "MNI152_T1_8mm_brain.nii.gz"
         self.parcellation_file = "fmri_d100_parcellation_with_PCC_reduced_2mm_ss5mm_ds8mm.nii.gz"
 
-    def _format_colorbar_ticks(self, ax):
-        """Formats x-axis ticks in the colobar such that integer values are 
-        plotted, instead of decimal values.
-
-        Parameters
-        ----------
-        ax : matplotlib.axes.Axes
-            A colobar axis to format.
-        """
-
-        if np.any(np.abs(ax.get_xlim()) < 1):
-            hmin = round_nonzero_decimal(ax.get_xlim()[0], method="ceil") # ceiling for negative values
-            hmax = round_nonzero_decimal(ax.get_xlim()[1], method="floor") # floor for positive values
-            ax.set_xticks(np.array([hmin, 0, hmax]))
-        else:
-            ax.set_xticks(
-                [round_up_half(val) for val in ax.get_xticks()[1:-1]]
-            )
-        
-        return None
-
     def plot_power_map(
             self,
             power_map,
@@ -550,7 +551,7 @@ class DynamicVisualizer():
             cb_ax.set_position(new_pos)
             
             # Set colorbar styles
-            self._format_colorbar_ticks(cb_ax)
+            _format_colorbar_ticks(cb_ax)
             cb_ax.ticklabel_format(style='scientific', axis='x', scilimits=(-2, 6))
             cb_ax.tick_params(labelsize=fontsize)
             cb_ax.xaxis.offsetText.set_fontsize(fontsize)
