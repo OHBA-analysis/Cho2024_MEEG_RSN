@@ -829,14 +829,14 @@ class GroupDifferencePSD():
             ]
 
         # Compute inputs and frequencies to draw topomaps (low frequency, beta)
-        low_beta_range = [[1, 8], [13, 30]]
+        low_beta_range = [[1.5, 8], [13, 20]]
         topo_data = [
             power.variance_from_spectra(self.freqs, self.gpsd_diff, frequency_range=low_beta_range[0]),
             power.variance_from_spectra(self.freqs, self.gpsd_diff, frequency_range=low_beta_range[1]),
         ] # dim: (n_band, n_parcels)
         topo_freq_bottom = [
-            self.freqs[np.where(np.logical_and(self.freqs >= 1, self.freqs <= 8))].mean(),
-            self.freqs[np.where(np.logical_and(self.freqs >= 13, self.freqs <= 30))].mean(),
+            self.freqs[np.where(np.logical_and(self.freqs >= 1.5, self.freqs <= 8))].mean(),
+            self.freqs[np.where(np.logical_and(self.freqs >= 13, self.freqs <= 20))].mean(),
         ]
         if self.data_space == "sensor" and self.modality == "meg":
             topo_data_mag = [
