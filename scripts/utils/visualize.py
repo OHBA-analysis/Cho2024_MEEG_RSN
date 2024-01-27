@@ -6,6 +6,7 @@ import os
 import pickle
 import mne
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import nibabel as nib
 import matplotlib
@@ -333,6 +334,106 @@ def plot_null_distribution(null_dist, thresh, filename):
     plt.savefig(filename)
     plt.close(fig)
     
+    return None
+
+def _categrozie_pvalue(pval):
+    """Assigns a label indicating statistical significance that corresponds 
+    to an input p-value.
+
+    Parameters
+    ----------
+    pval : float
+        P-value from a statistical test.
+
+    Returns
+    -------
+    p_label : str
+        Label representing a statistical significance.
+    """ 
+
+    thresholds = [1e-3, 0.01, 0.05]
+    labels = ["***", "**", "*", "n.s."]
+    ordinal_idx = np.max(np.where(np.sort(thresholds + [pval]) == pval)[0])
+    # NOTE: use maximum for the case in which a p-value and threshold are identical
+    p_label = labels[ordinal_idx]
+
+    return p_label
+
+def plot_single_grouped_violin(
+        data,
+        group_label,
+        filename,
+        xlbl=None,
+        ylbl=None,
+        pval=None
+    ):
+    """Plots a grouped violin plot for each state.
+
+    Parameters
+    ----------
+    data : np.ndarray
+        Input data. Shape must be (n_subjects,).
+    group_label : list of str
+        List containing group labels for each subject.
+    filename : str
+        Path for saving the figure.
+    xlbl : str
+        X-axis tick label. Defaults to None. If you input a string of a number,
+        it will print out "State {xlbl}".
+    ylbl : str
+        Y-axis tick label. Defaults to None.
+    pval : np.ndarray
+        P-values for each violin indicating staticial differences between
+        the groups. If provided, statistical significance is plotted above the
+        violins. Defaults to None.
+    """
+
+    # Validation
+    if not isinstance(data, np.ndarray):
+        raise ValueError("Input data should be an numpy array.")
+
+    # Build dataframe
+    df = pd.DataFrame(data, columns=["Statistics"])
+    df["Age"] = group_label
+    df["State"] = np.ones((len(data),))
+
+    # Plot grouped split violins
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(3.7, 4))
+    sns.set_theme(style="white")
+    vp = sns.violinplot(data=df, x="State", y="Statistics", hue="Age",
+                        split=True, inner="box", linewidth=1,
+                        palette={"Young": "b", "Old": "r"}, ax=ax)
+    if pval is not None:
+        vmin, vmax = [], []
+        for collection in vp.collections:
+            if isinstance(collection, matplotlib.collections.PolyCollection):
+                vmin.append(np.min(collection.get_paths()[0].vertices[:, 1]))
+                vmax.append(np.max(collection.get_paths()[0].vertices[:, 1]))
+        vmin = np.min(np.array(vmin))
+        vmax = np.max(np.array(vmax))
+        ht = (vmax - vmin) * 0.045
+        p_lbl = _categrozie_pvalue(pval)
+        if p_lbl != "n.s.":
+            ax.text(
+                vp.get_xticks(),
+                vmax + ht,
+                p_lbl, 
+                ha="center", va="center", color="k", 
+                fontsize=20, fontweight="bold"
+            )
+    sns.despine(fig=fig, ax=ax) # get rid of top and right axes
+    ax.set_ylim([ax.get_ylim()[0], ax.get_ylim()[1] + np.max(vmax - vmin) * 0.05])
+    if xlbl is not None:
+        ax.set_xlabel(f"State {xlbl}", fontsize=22)
+    else: ax.set_xlabel("")
+    ax.set_ylabel(ylbl, fontsize=22)
+    ax.set_xticks([])
+    ax.tick_params(labelsize=22)
+    ax.get_legend().remove()
+    plt.tight_layout()
+    fig.savefig(filename)
+    plt.close(fig)
+
     return None
 
 class StaticVisualizer():
