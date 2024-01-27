@@ -4,7 +4,7 @@
 
 import numpy as np
 from scipy.spatial.distance import jensenshannon
-from osl_dynamics.inference import metrics
+from osl_dynamics.inference import metrics, modes
 
 def between_state_rv_coefs(matrix1, matrix2):
     """
@@ -72,3 +72,47 @@ def js_divergence_matrix(matrix1, matrix2):
     mean_js_divergence = np.mean(js_divergences)
 
     return mean_js_divergence
+
+def compute_summary_statistics(state_time_course, sampling_frequency):
+    """
+    Computes four metrics of summary statistics from a given HMM state 
+    time course.
+
+    Parameters
+    ----------
+    state_time_course : list of np.ndarray
+        State time courses (strictly binary). Shape must be (n_subjects, 
+        n_samples, n_states).
+    sampling_frequency : int
+        Sampling frequency in Hz.
+    
+    Returns
+    -------
+    fo : np.ndarray
+        Fractional occupancy of each state. Shape is (n_subjects, n_states).
+    lt : np.ndarray
+        Mean lifetime of each state. Shape is (n_subjects, n_states).
+    intv : np.ndarray
+        Mean interval of each state. Shape is (n_subjects, n_states).
+    sr : np.ndarray
+        Switching rate of each state. Shape is (n_subjects, n_states).
+    """
+
+    # Compute fractional occupancies
+    fo = modes.fractional_occupancies(state_time_course)
+    print(f"Shape of fractional occupancy: {fo.shape}")
+
+    # Compute mean lifetimes
+    lt = modes.mean_lifetimes(state_time_course, sampling_frequency)
+    lt *= 1e3 # convert seconds to milliseconds
+    print(f"Shape of mean lifetimes: {lt.shape}")
+    
+    # Compute mean intervals
+    intv = modes.mean_intervals(state_time_course, sampling_frequency)
+    print(f"Shape of mean intervals: {intv.shape}")
+
+    # Compute switching rates
+    sr = modes.switching_rates(state_time_course, sampling_frequency)
+    print(f"Shape of switching rates: {sr.shape}")
+
+    return fo, lt, intv, sr
