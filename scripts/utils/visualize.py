@@ -2,9 +2,7 @@
 
 """
 
-import os
-import pickle
-import mne
+import os, pickle, mne
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -13,12 +11,14 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import LinearSegmentedColormap, Normalize, CenteredNorm
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from nilearn.plotting import plot_glass_brain
 from osl_dynamics import files
 from osl_dynamics.analysis import power, connectivity
 from osl_dynamics.utils import plotting
 from osl_dynamics.utils.parcellation import Parcellation
 from utils.array_ops import round_nonzero_decimal, round_up_half
+from utils.statistics import fit_glm, cluster_perm_test
 
 def _colormap_transparent(cmap_name, start_opacity=0.2, end_opacity=1.0):
     """Add transparency to a selected colormap registered in matplotlib.
@@ -240,15 +240,15 @@ def plot_nnmf_components(freqs, components, filename, comp_lbls=None, fontsize=1
     return None
 
 def plot_surfaces(
-    data_map,
-    mask_file,
-    parcellation_file,
-    vmin=None,
-    vmax=None,
-    symmetric_cbar=True,
-    figure=None,
-    axis=None,
-):
+        data_map,
+        mask_file,
+        parcellation_file,
+        vmin=None,
+        vmax=None,
+        symmetric_cbar=True,
+        figure=None,
+        axis=None,
+    ):
     """Wrapper of the `plot_glass_brain()` function in the nilearn package.
 
     Parameters
@@ -431,6 +431,145 @@ def plot_single_grouped_violin(
     ax.tick_params(labelsize=22)
     ax.get_legend().remove()
     plt.tight_layout()
+    fig.savefig(filename)
+    plt.close(fig)
+
+    return None
+
+def plot_state_spectra_group_diff(
+        f,
+        psd,
+        subject_ids,
+        group_assignments,
+        modality,
+        bonferroni_ntest,
+        filename
+    ):
+    """Plots state-specific PSDs and their between-group statistical differences.
+    This function tests statistical differences using a cluster permutation test 
+    on the frequency axis.
+
+    Parameters
+    ----------
+    f : np.ndarray
+        Frequencies of the power spectra and coherences. Shape is (n_freqs,).
+    psd : np.ndarray
+        Power spectra for each subject and state/mode. Shape must be (n_subjects,
+        n_states, n_channels, n_freqs).
+    subject_ids : list of str
+        Subject IDs corresponding to the input data.
+    group_assignments : np.ndarray
+        1D array containing group labels for input subjects. A value of 1 indicates
+        Group 1 (old) and a value of 2 indicates Group 2 (young).
+    modality : str
+        Type of data modality. Should be either "eeg" or "meg".
+    bonferroni_ntest : int
+        Number of tests to use for Bonferroni correction. If None, Bonferroni
+        correction will not take place.
+    filename : str
+        Path for saving the figure.
+    test_type : str
+        Type of the cluster permutation test function to use. Should be "mne"
+        or "glmtools" (default).
+    """
+
+    # Number of states
+    n_states = psd.shape[1]
+    n_columns = n_states // 2
+
+    # Get group-averaged PSDs
+    gpsd_old = np.mean(psd[group_assignments == 1], axis=0)
+    gpsd_young = np.mean(psd[group_assignments == 2], axis=0)
+    # dim: (n_states, n_channels, n_freqs)
+
+    # Build a colormap
+    qcmap = plt.rcParams["axes.prop_cycle"].by_key()["color"] # qualitative
+
+    # Plot state-specific PSDs and their statistical difference
+    fig, ax = plt.subplots(nrows=2, ncols=n_columns, figsize=(6.5 * n_columns, 10))
+    k, j = 0, 0 # subplot indices
+    for n in range(n_states):
+        print(f"Plotting State {n + 1}")
+        
+        # Set the row index
+        if (n % n_columns == 0) and (n != 0):
+            k += 1
+        
+        # Fit GLM on state-specific, parcel-averaged PSDs
+        ppsd = np.mean(psd, axis=2)
+        # dim: (n_subjects, n_states, n_freqs)
+        psd_model, psd_design, psd_data = fit_glm(
+            ppsd[:, n, :],
+            subject_ids,
+            group_assignments,
+            modality=modality,
+            dimension_labels=["Subjects", "Frequency"],
+        )
+
+        # Perform cluster permutation tests on state-specific PSDs
+        t_obs, clu_idx = cluster_perm_test(
+            psd_model,
+            psd_data,
+            psd_design,
+            pooled_dims=(1,),
+            contrast_idx=0,
+            n_perm=5000,
+            metric="tstats",
+            bonferroni_ntest=bonferroni_ntest,
+        )
+        n_clusters = len(clu_idx)
+        t_obs = t_obs[0] # select the first contrast
+
+        # Average group-level PSDs over the parcels
+        po = np.mean(gpsd_old[n], axis=0)
+        py = np.mean(gpsd_young[n], axis=0)
+        eo = np.std(gpsd_old[n], axis=0) / np.sqrt(gpsd_old.shape[0])
+        ey = np.std(gpsd_young[n], axis=0) / np.sqrt(gpsd_young.shape[0])
+
+        # Plot mode-specific group-level PSDs
+        ax[k, j].plot(f, py, c=qcmap[n], label="Young")
+        ax[k, j].plot(f, po, c=qcmap[n], label="Old", linestyle="--")
+        ax[k, j].fill_between(f, py - ey, py + ey, color=qcmap[n], alpha=0.1)
+        ax[k, j].fill_between(f, po - eo, po + eo, color=qcmap[n], alpha=0.1)
+        if n_clusters > 0:
+            for c in range(n_clusters):
+                ax[k, j].axvspan(f[clu_idx[c]][0], f[clu_idx[c]][-1], facecolor='tab:red', alpha=0.1)
+
+        # Set labels
+        ax[k, j].set_xlabel("Frequency (Hz)", fontsize=18)
+        if j == 0:
+            ax[k, j].set_ylabel("PSD (a.u.)", fontsize=18)
+        ax[k, j].set_title(f"State {n + 1}", fontsize=18)
+        ax[k, j].ticklabel_format(style="scientific", axis="y", scilimits=(-2, 6))
+        ax[k, j].tick_params(labelsize=18)
+        ax[k, j].yaxis.offsetText.set_fontsize(18)
+
+        # Plot observed statistics
+        end_pt = np.mean([py[int(len(py) // 3):], py[int(len(py) // 3):]])
+        criteria = np.mean([ax[k, j].get_ylim()[0], ax[k, j].get_ylim()[1]])
+        if end_pt >= criteria:
+            inset_bbox = (0, -0.22, 1, 1)
+        if end_pt < criteria:
+            inset_bbox = (0, 0.28, 1, 1)
+        ax_inset = inset_axes(ax[k, j], width='40%', height='30%', 
+                            loc='center right', bbox_to_anchor=inset_bbox,
+                            bbox_transform=ax[k, j].transAxes)
+        ax_inset.plot(f, t_obs, color='k', lw=2) # plot t-spectra
+        for c in range(len(clu_idx)):
+            ax_inset.axvspan(f[clu_idx[c]][0], f[clu_idx[c]][-1], facecolor='tab:red', alpha=0.1)
+        ax_inset.set(
+            xticks=np.arange(0, max(f), 20),
+            ylabel="t-stats",
+        )
+        ax_inset.set_ylabel('t-stats', fontsize=16)
+        ax_inset.tick_params(labelsize=16)
+
+        # Set the column index
+        j += 1
+        if (j % n_columns == 0) and (j != 0):
+            j = 0
+
+    plt.subplots_adjust(hspace=0.5)
     fig.savefig(filename)
     plt.close(fig)
 
