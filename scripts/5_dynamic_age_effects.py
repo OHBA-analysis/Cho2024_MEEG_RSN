@@ -82,8 +82,8 @@ if __name__ == "__main__":
         BASE_DIR, "data",
         f"dynamic_{modality}_{n_states}states_run{run_id}_{data_type}.pkl"
     ))
-    freqs, psds, _, _, power_maps, _, gfo = dynamic_network_features.values()
-    freq_bands = ["delta", "theta", "alpha", "beta"]
+    freqs, psds, _, _, power_maps, _, _ = dynamic_network_features.values()
+    freq_bands = ["wide"]
     
     # ------------------ [2] ------------------ #
     #      Preprocess inferred parameters       #
@@ -168,13 +168,8 @@ if __name__ == "__main__":
     # ------------------------------------------ #
     print("\n*** STEP 4: QUANTIFYING AGE EFFECTS IN PSDS ***")
 
-    # Subtract the mean across states
-    print("(Step 4-1) Subtracting the mean across states ...")
-    psds -= np.average(psds, axis=1, weights=gfo, keepdims=True)
-    # dim: (n_subjects, n_states, n_channels, n_freqs)
-    # NOTE: The (static) mean across states is subtracted from the PSDs subject-wise.
-
     # Visualize group-level age effects in state-specific PSDs
+    print("(Step 4-1) Visualizing group-level age effects ...")
     visualize.plot_state_spectra_group_diff(
         freqs,
         psds,
@@ -197,15 +192,11 @@ if __name__ == "__main__":
     for band in freq_bands:
         print(f"[{band.upper()}] Measuring age effects in power maps ...")
 
-        # Subtract the mean across states
-        pm = power_maps[band] - np.average(power_maps[band], axis=1, weights=gfo, keepdims=True)
-        # dim: (n_subjects, n_states, n_channels)
-
         for n in range(n_states):
             print(f"\tState {n + 1}")
             # Fit GLM on subject-level power maps
             power_model, power_design, power_data = fit_glm(
-                pm[:, n, :],
+                power_maps[band][:, n, :],
                 subject_ids,
                 group_assignments,
                 modality=modality,
