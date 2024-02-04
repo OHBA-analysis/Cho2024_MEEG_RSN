@@ -8,7 +8,7 @@ import numpy as np
 from sys import argv
 from osl_dynamics.analysis import static, power, connectivity
 from osl_dynamics.data import Data
-from utils.data import load_data, save_data
+from utils.data import load_data, save_data, get_raw_file_names
 from utils.static import compute_aec
 from utils.visualize import StaticVisualizer, _colormap_transparent
 
@@ -54,12 +54,7 @@ if __name__ == "__main__":
 
     # Get data files
     print("(Step 1-2) Getting data files ...")
-    file_names = []
-    for id in subject_ids:
-        if modality == "eeg":
-            file_names.append(os.path.join(DATA_DIR, f"src_ec/{id}/sflip_parc-raw.npy"))
-        elif modality == "meg":
-            file_names.append(os.path.join(DATA_DIR, f"src/{id}/sflip_parc-raw.fif"))
+    file_names = get_raw_file_names(DATA_DIR, subject_ids, modality)
 
     # Load subject-wise data arrays
     print("(Step 1-3) Loading data recordings ...")

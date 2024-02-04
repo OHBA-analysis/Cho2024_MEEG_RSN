@@ -258,3 +258,37 @@ def load_order(modality, n_states, data_type, run_id):
         order = None
     
     return order
+
+def get_raw_file_names(data_dir, subject_ids, modality):
+    """Get paths to raw M/EEG recordings that correspond to given 
+       subject IDs.
+
+    Parameters
+    ----------
+    data_dir : str
+        A directory path containing subject data.
+    subject_ids : list of str
+        List of subject IDs.
+    modality : str
+        Type of the modality. Should be either "eeg" or "meg".
+
+    Returns
+    -------
+    file_names : list of str
+        List of file names containing raw M/EEG recordings.
+    """
+
+    # Validation
+    if modality not in ["eeg", "meg"]:
+        raise ValueError("modality should be either 'eeg' or 'meg'.")
+    
+    # Get file names
+    file_names = []
+    if modality == "eeg":
+        filename = os.path.join(data_dir, "src_ec/{}/sflip_parc-raw.npy")
+    else:
+        filename = os.path.join(data_dir, "src/{}/sflip_parc-raw.fif")
+    for id in subject_ids:
+        file_names.append(filename.format(id))
+    
+    return file_names
