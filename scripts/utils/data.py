@@ -142,6 +142,33 @@ def load_meta_data(modality):
 
     return meta_data
 
+def load_age_information(subject_ids, modality):
+    """Get age of each subject.
+
+    Parameters
+    ----------
+    subject_ids : list of str
+        List of subject IDs.
+    modality : str
+        Type of data modality. Should be either "eeg" or "meg".
+
+    Returns
+    -------
+    ages : np.ndarray
+        1D array marking numerical ages for each subject.
+    """
+
+    # Load meta data
+    meta_data = load_meta_data(modality)
+
+    # Get subject age
+    if modality == "eeg":
+        ages = np.array([meta_data.loc[meta_data["ID"] == id]["Age"].values[0] for id in subject_ids])
+    if modality == "meg":
+        ages = np.array([meta_data.loc[meta_data["participant_id"] == id]["age"].values[0] for id in subject_ids])
+    
+    return ages
+
 def load_sex_information(subject_ids, modality):
     """Get sex of each subject. The sex should be either Female or Male.
 
