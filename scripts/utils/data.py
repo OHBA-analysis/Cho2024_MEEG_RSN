@@ -142,7 +142,7 @@ def load_meta_data(modality):
 
     return meta_data
 
-def load_age_information(subject_ids, modality):
+def load_age_information(subject_ids, modality, data_type="numerical"):
     """Get age of each subject.
 
     Parameters
@@ -151,11 +151,13 @@ def load_age_information(subject_ids, modality):
         List of subject IDs.
     modality : str
         Type of data modality. Should be either "eeg" or "meg".
+    data_type : str
+        Type of output age. Should be either "numerical" or "categorical".
 
     Returns
     -------
     ages : np.ndarray
-        1D array marking numerical ages for each subject.
+        1D array containing ages for each subject.
     """
 
     # Load meta data
@@ -166,7 +168,20 @@ def load_age_information(subject_ids, modality):
         ages = np.array([meta_data.loc[meta_data["ID"] == id]["Age"].values[0] for id in subject_ids])
     if modality == "meg":
         ages = np.array([meta_data.loc[meta_data["participant_id"] == id]["age"].values[0] for id in subject_ids])
-    
+        
+    if data_type == "categorical":
+        if modality == "meg":
+            category = np.empty(ages.shape, dtype=object)
+            age_intervals = [[20, 25], [25, 30], [30, 35], [55, 60], 
+                            [60, 65], [65, 70], [70, 75], [75, 80]]
+            for n, (start, end) in enumerate(age_intervals):
+                if n == 0 or n == 3:
+                    mask = np.logical_and(ages >= start, ages <= end)
+                else:
+                    mask = np.logical_and(ages > start, ages <= end)
+                category[mask] = f"{start}-{end}"
+            ages = category # reassign variable
+        
     return ages
 
 def load_sex_information(subject_ids, modality):
