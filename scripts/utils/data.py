@@ -152,7 +152,8 @@ def load_age_information(subject_ids, modality, data_type="numerical"):
     modality : str
         Type of data modality. Should be either "eeg" or "meg".
     data_type : str
-        Type of output age. Should be either "numerical" or "categorical".
+        Type of output age. Should be either "numerical", "categorical", 
+        or "binary".
 
     Returns
     -------
@@ -181,6 +182,15 @@ def load_age_information(subject_ids, modality, data_type="numerical"):
                     mask = np.logical_and(ages > start, ages <= end)
                 category[mask] = f"{start}-{end}"
             ages = category # reassign variable
+
+    if data_type == "binary":
+        binary = np.zeros((ages.shape)) # 0: old, 1: young
+        if modality == "eeg":
+            mask = np.array([int(age.split("-")[0]) >= 55 for age in ages])
+            binary[mask] = 1
+        if modality == "meg":
+            binary[ages > 55] = 1
+        ages = binary # reassign variable
         
     return ages
 
