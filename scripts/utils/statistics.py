@@ -332,7 +332,7 @@ def multi_class_prediction(X, y, classifier, n_splits, seed=0):
             best_score = score
             best_clf = clf
         print(f"Fold {fold}: best_params={clf.best_params_} accuracy={score}")
-    print(f"Mean validation accuracy: {np.mean(val_scores)}")
+    print(f"Mean validation accuracy (w/ standard dev.): {np.mean(val_scores)} +/- {np.std(val_scores)}")
     
     # Make prediction on the test dataset
     test_score = best_clf.score(X_test, y_test)
