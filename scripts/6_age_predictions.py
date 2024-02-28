@@ -154,7 +154,7 @@ if __name__ == "__main__":
         print("(Step 3-1) Preparing training dataset ...")
         dynamic_data = copy.deepcopy(training_data)
         prepare_config = {
-            "tde_pca": {"n_embeddings": 15, "n_pca_components": 80},
+            "tde_pca": {"n_embeddings": 15, "n_pca_components": 80, "use_raw": True},
             "standardize": {},
         }
         dynamic_data.prepare(methods=prepare_config)
