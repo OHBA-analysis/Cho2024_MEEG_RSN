@@ -67,7 +67,7 @@ def js_divergence_matrix(matrix1, matrix2):
 
     # Calculate JS divergence for each pair of rows
     js_divergences = [
-        jensenshannon(matrix1[n, :], matrix2[n, :]) for n in range(n_states)
+        jensenshannon(matrix1[n, :], matrix2[n, :]) ** 2 for n in range(n_states)
     ]
     mean_js_divergence = np.mean(js_divergences)
 
