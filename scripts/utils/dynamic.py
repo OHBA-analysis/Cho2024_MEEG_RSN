@@ -41,9 +41,9 @@ def between_state_rv_coefs(matrix1, matrix2):
     
     return rv_coefs
 
-def js_divergence_matrix(matrix1, matrix2):
+def js_distance_matrix(matrix1, matrix2):
     """
-    Computes the Jensen-Shannon (JS) divergence between two matrices.
+    Computes the Jensen-Shannon (JS) distance between two matrices.
     Here, we compute the JS distance for each pair of rows from two 
     matrices and then calculate the mean of resulting distances.
 
@@ -56,7 +56,7 @@ def js_divergence_matrix(matrix1, matrix2):
 
     Returns
     -------
-    mean_js_divergence : float
+    mean_js_distance : float
         The Jensen-Shannon distance between two matrices.
     """
 
@@ -65,13 +65,13 @@ def js_divergence_matrix(matrix1, matrix2):
         raise ValueError("Shape of two input matrices must be identical.")
     n_states = matrix1.shape[0]
 
-    # Calculate JS divergence for each pair of rows
-    js_divergences = [
-        jensenshannon(matrix1[n, :], matrix2[n, :]) ** 2 for n in range(n_states)
+    # Calculate JS distance for each pair of rows
+    js_distances = [
+        jensenshannon(matrix1[n, :], matrix2[n, :]) for n in range(n_states)
     ]
-    mean_js_divergence = np.mean(js_divergences)
+    mean_js_distance = np.mean(js_distances)
 
-    return mean_js_divergence
+    return mean_js_distance
 
 def compute_summary_statistics(state_time_course, sampling_frequency):
     """

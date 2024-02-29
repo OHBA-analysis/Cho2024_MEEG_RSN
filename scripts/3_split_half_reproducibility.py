@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from utils.array_ops import reorder_matrix_by_indices
 from utils.data import load_data, load_order
-from utils.dynamic import between_state_rv_coefs, js_divergence_matrix
+from utils.dynamic import between_state_rv_coefs, js_distance_matrix
 
 
 if __name__ == "__main__":
@@ -78,9 +78,9 @@ if __name__ == "__main__":
         # Calculate RV coefficients of the inferred covariances
         rv_coefs.append(between_state_rv_coefs(covs[i], covs[j]))
         print(f"\tRV coefficients: {rv_coefs[-1]}")
-        # Calculate Jensen-Shannon (JS) divergence between transition probability matrices
-        js_divs.append(js_divergence_matrix(tps[i], tps[j]))
-        print(f"\tJS divergence: {js_divs[-1]}")
+        # Calculate Jensen-Shannon (JS) distance between transition probability matrices
+        js_divs.append(js_distance_matrix(tps[i], tps[j]))
+        print(f"\tJS distance: {js_divs[-1]}")
 
     # --------- [3] ---------- #
     #      Visualization       #
@@ -116,14 +116,14 @@ if __name__ == "__main__":
         transparent=True, bbox_inches="tight"
     )
 
-    # Plot JS divergence between transition probability matrices
-    print("(Step 3-2) Summarizing transition probability JS divergence ...")
-    df = pd.DataFrame({"Comparisons": names, "JS Divergence": js_divs})
+    # Plot JS distance between transition probability matrices
+    print("(Step 3-2) Summarizing transition probability JS distance ...")
+    df = pd.DataFrame({"Comparisons": names, "JS Distance": js_divs})
     df = df.reindex(index=pair_orders)
 
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5, 4))
     bp = sns.barplot(
-        df, x="JS Divergence", y="Comparisons",
+        df, x="JS Distance", y="Comparisons",
         width=0.4,
         linewidth=2,
         orient="h",
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     for i, patch in enumerate(bp.patches):
         patch.set_facecolor(colors[i])
     ax.axhline(y=1.5, color="k", linewidth=1.5, linestyle="--", alpha=0.4)
-    ax.set_xticks([0.00, 0.04, 0.08, 0.12])
+    ax.set_xticks([0.00, 0.02, 0.04, 0.06])
     ax.set_ylabel("")
     plt.tight_layout()
     fig.savefig(os.path.join(DATA_DIR, f"tp_js_divs_states{n_states}.png"), transparent=True)
