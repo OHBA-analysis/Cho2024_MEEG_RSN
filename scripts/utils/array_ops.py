@@ -124,12 +124,8 @@ def reorder_matrix_by_indices(matrix, order):
     # Validation
     if matrix.shape[0] != matrix.shape[1]:
         raise ValueError("matrix should be a square matrix.")
-
-    # Create a mapping from the prior order to the current order
-    current_order = list(np.arange(len(order)))
-    mapping = [order.index(item) for item in current_order]
     
     # Rearrange rows and columns of matrix to match the given order
-    matrix_reordered = matrix[np.ix_(mapping, mapping)]
+    matrix_reordered = matrix[np.ix_(order, order)]
 
     return matrix_reordered
