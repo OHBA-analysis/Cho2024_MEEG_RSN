@@ -20,13 +20,14 @@ if __name__ == "__main__":
     print("*** STEP 1: SETTINGS ***")
 
     # Set hyperparameters
-    if len(argv) != 2:
-        print("Need to pass one argument: data modality (e.g., python script.py eeg)")
+    if len(argv) != 3:
+        print("Need to pass two arguments: data modality and structural type (e.g., python script.py eeg subject)")
         exit()
     modality = argv[1] # data modality
+    structurals = argv[2] # type of structurals to use
     if modality not in ["eeg", "meg"]:
         raise ValueError("modality should be either 'eeg' or 'meg'.")
-    print(f"[INFO] Data Modality: {modality.upper()}")
+    print(f"[INFO] Data Modality: {modality.upper()} | Structurals: {structurals}")
 
     # Set directory paths
     BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
@@ -36,6 +37,8 @@ if __name__ == "__main__":
     if modality == "meg":
         DATA_DIR = os.path.join(PROJECT_DIR, "camcan/scho23")
     SAVE_DIR = BASE_DIR + f"/results/static/{modality}"
+    if structurals == "standard":
+        SAVE_DIR = SAVE_DIR.replace("static/", "static_no_struct/")
     TMP_DIR = SAVE_DIR + "/tmp"
     os.makedirs(SAVE_DIR, exist_ok=True)
     os.makedirs(TMP_DIR, exist_ok=True)
@@ -54,7 +57,7 @@ if __name__ == "__main__":
 
     # Get data files
     print("(Step 1-2) Getting data files ...")
-    file_names = get_raw_file_names(DATA_DIR, subject_ids, modality)
+    file_names = get_raw_file_names(DATA_DIR, subject_ids, modality, structurals)
 
     # Load subject-wise data arrays
     print("(Step 1-3) Loading data recordings ...")
@@ -81,6 +84,8 @@ if __name__ == "__main__":
     print("\n*** STEP 2: STATIC NETWORK FEATURE COMPUTATIONS ***")
 
     save_path = os.path.join(BASE_DIR, f"data/static_network_features_{modality}.pkl")
+    if structurals == "standard":
+        save_path = save_path.replace(".pkl", "_no_struct.pkl")
     
     if os.path.exists(save_path):
         # Load static network features

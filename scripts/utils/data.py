@@ -311,7 +311,7 @@ def load_order(modality, n_states, data_type, run_id):
     
     return order
 
-def get_raw_file_names(data_dir, subject_ids, modality):
+def get_raw_file_names(data_dir, subject_ids, modality, structurals):
     """Get paths to raw M/EEG recordings that correspond to given 
        subject IDs.
 
@@ -323,6 +323,9 @@ def get_raw_file_names(data_dir, subject_ids, modality):
         List of subject IDs.
     modality : str
         Type of the modality. Should be either "eeg" or "meg".
+    structurals : str
+        Type of the structural files used. Should be either "subject" 
+        (individual sMRI files) or "standard" (standard MNE file).
 
     Returns
     -------
@@ -333,14 +336,17 @@ def get_raw_file_names(data_dir, subject_ids, modality):
     # Validation
     if modality not in ["eeg", "meg"]:
         raise ValueError("modality should be either 'eeg' or 'meg'.")
+    if structurals == "standard":
+        struct_dir = "_no_struct"
+    else: struct_dir = ""
     
     # Get file names
     file_names = []
     if modality == "eeg":
-        filename = os.path.join(data_dir, "src_ec/{}/sflip_parc-raw.npy")
+        filename = os.path.join(data_dir, "src_ec{}/{}/sflip_parc-raw.npy")
     else:
-        filename = os.path.join(data_dir, "src/{}/sflip_parc-raw.fif")
+        filename = os.path.join(data_dir, "src{}/{}/sflip_parc-raw.fif")
     for id in subject_ids:
-        file_names.append(filename.format(id))
+        file_names.append(filename.format(struct_dir, id))
     
     return file_names
