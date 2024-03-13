@@ -19,13 +19,17 @@ if __name__ == "__main__":
     print("Step 1 - Setting up ...")
 
     # Set run name
-    if len(argv) != 4:
-        raise ValueError("Need to pass two arguments: run ID, number of states, and data type (e.g., python script.py 1 6 full)")
+    if len(argv) != 5:
+        raise ValueError("Need to pass four arguments: run ID, number of states, data type, and structural type" + 
+                         " (e.g., python script.py 1 6 full subject)")
     run = argv[1] # run ID
     n_states = int(argv[2]) # number of states
-    data_type = argv[3]
+    data_type = argv[3] # type of the dataset to use
+    structurals = argv[4] # type of structurals to use
     if data_type not in ["full", "split1", "split2"]:
         raise ValueError("data_type should be either 'full', 'split1', or 'split2'.")
+    if structurals not in ["subject", "standard"]:
+        raise ValueError("structurals should be either 'subject' or 'standard'.")
 
     # Set up GPU
     tf_ops.gpu_growth()
@@ -35,6 +39,9 @@ if __name__ == "__main__":
     output_dir = f"{BASE_DIR}/results/dynamic/lemon/state{n_states}/run{run}"
     if data_type != "full":
         output_dir = output_dir.replace("dynamic", f"reprod/{data_type}")
+    if structurals == "standard":
+        for subdir in ["dynamic", "reprod"]:
+            output_dir = output_dir.replace(subdir, f"{subdir}_no_struct")
     os.makedirs(output_dir, exist_ok=True)
 
     # Set output sub-directory paths
@@ -68,6 +75,8 @@ if __name__ == "__main__":
 
     # Load data
     dataset_dir = "/well/woolrich/projects/lemon/scho23/src_ec"
+    if structurals == "standard":
+        dataset_dir += "_no_struct"
     if data_type == "full":
         age_group_idx = load_data(os.path.join(BASE_DIR, "data/age_group_idx.pkl"))
         subject_ids  = np.concatenate((
