@@ -20,20 +20,21 @@ if __name__ == "__main__":
     print("*** STEP 1: SETTINGS ***")
 
     # Set hyperparameters
-    if len(argv) != 5:
-        print("Need to pass four arguments: data modality, number of states, run ID, and data type " 
-              + "(e.g., python script.py eeg 6 0 full)")
+    if len(argv) != 6:
+        print("Need to pass four arguments: data modality, number of states, run ID, data type, and structural type " 
+              + "(e.g., python script.py eeg 6 0 full subject)")
         exit()
     modality = argv[1] # data modality
     n_states = int(argv[2]) # number of states
     run_id = int(argv[3])
     data_type = argv[4]
+    structurals = argv[5]
     if modality not in ["eeg", "meg"]:
         raise ValueError("modality should be either 'eeg' or 'meg'.")
     if data_type not in ["full", "split1", "split2"]:
         raise ValueError("invalid data type.")
     print(f"[INFO] Data Modality: {modality.upper()} | State #: {n_states} | Run ID: run{run_id} "
-          + f"| Data Type: {data_type}")
+          + f"| Data Type: {data_type} | Structural Type: {structurals}")
 
     # Define dataset name
     if modality == "eeg":
@@ -45,9 +46,12 @@ if __name__ == "__main__":
     DATA_DIR = BASE_DIR + f"/results/dynamic/{data_name}/state{n_states}/run{run_id}"
     if data_type != "full":
         DATA_DIR = DATA_DIR.replace("dynamic", f"reprod/{data_type}")
+    if structurals == "standard":
+        for subdir in ["dynamic", "reprod"]:
+            DATA_DIR = DATA_DIR.replace(subdir, f"{subdir}_no_struct")
 
     # Get state orders for the specified model run
-    order = load_order(modality, n_states, data_type, run_id)
+    order = load_order(modality, n_states, data_type, run_id, structurals)
 
     # Load group information
     print("(Step 1-1) Loading subject information ...")
@@ -78,10 +82,13 @@ if __name__ == "__main__":
         raise ValueError(f"the length of alphas does not match the number of subjects.")
     
     # Load subject-level network features
-    dynamic_network_features = load_data(os.path.join(
+    data_path = os.path.join(
         BASE_DIR, "data",
         f"dynamic_{modality}_{n_states}states_run{run_id}_{data_type}.pkl"
-    ))
+    )
+    if structurals == "standard":
+        data_path = data_path.replace(".pkl", "_no_struct.pkl")
+    dynamic_network_features = load_data(data_path)
     freqs, psds, _, _, power_maps, _, _ = dynamic_network_features.values()
     freq_bands = ["wide"]
     
