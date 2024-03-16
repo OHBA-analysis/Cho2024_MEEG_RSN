@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     # Set hyperparameters
     if len(argv) != 6:
-        print("Need to pass four arguments: data modality, number of states, run ID, data type, and structural type " 
+        print("Need to pass five arguments: data modality, number of states, run ID, data type, and structural type " 
               + "(e.g., python script.py eeg 6 0 full subject)")
         exit()
     modality = argv[1] # data modality
