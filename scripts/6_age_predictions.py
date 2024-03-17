@@ -28,20 +28,21 @@ if __name__ == "__main__":
     print("*** STEP 1: SETTINGS ***")
 
     # Set hyperparameters
-    if len(argv) != 5:
-        print("Need to pass four arguments: data modality, number of states, run ID, and data type " 
-              + "(e.g., python script.py eeg 6 0 full)")
+    if len(argv) != 6:
+        print("Need to pass five arguments: data modality, number of states, run ID, data type, and structural type " 
+              + "(e.g., python script.py eeg 6 0 full subject)")
         exit()
     modality = argv[1] # data modality
     n_states = int(argv[2]) # number of states
     run_id = int(argv[3])
     data_type = argv[4]
+    structurals = argv[5]
     if modality not in ["eeg", "meg"]:
         raise ValueError("modality should be either 'eeg' or 'meg'.")
     if data_type not in ["full"]:
         raise ValueError("this script only support a full dataset.")
     print(f"[INFO] Data Modality: {modality.upper()} | State #: {n_states} | Run ID: run{run_id} " + 
-          f"| Data Type: {data_type}")
+          f"| Data Type: {data_type} | Structural Type: {structurals}")
 
     # Define dataset name
     if modality == "eeg":
@@ -56,6 +57,8 @@ if __name__ == "__main__":
     if modality == "meg":
         DATA_DIR = os.path.join(PROJECT_DIR, "camcan/scho23")
     MODEL_DIR = BASE_DIR + f"/results/dynamic/{data_name}/state{n_states}/run{run_id}"
+    if structurals == "standard":
+        MODEL_DIR = MODEL_DIR.replace("dynamic", "dynamic_no_struct")
     SAVE_DIR = BASE_DIR + f"/results/static/{modality}"
     TMP_DIR = SAVE_DIR + "/tmp"
     os.makedirs(SAVE_DIR, exist_ok=True)
@@ -75,7 +78,7 @@ if __name__ == "__main__":
 
     # Load raw data
     print("(Step 1-2) Loading subject data ...")
-    file_names = get_raw_file_names(DATA_DIR, subject_ids, modality)
+    file_names = get_raw_file_names(DATA_DIR, subject_ids, modality, structurals)
     if modality == "eeg":
         training_data = Data(file_names, store_dir=TMP_DIR)
     if modality == "meg":
@@ -93,7 +96,7 @@ if __name__ == "__main__":
         raise ValueError("the length of alphas does not match the number of subjects.")
     
     # Get state orders for the specified model run
-    order = load_order(modality, n_states, data_type, run_id)
+    order = load_order(modality, n_states, data_type, run_id, structurals)
 
     # Reorder states if necessary
     if order is not None:
@@ -110,6 +113,8 @@ if __name__ == "__main__":
         BASE_DIR, "data",
         f"static_tde_cov_{modality}_{n_states}states_run{run_id}.pkl",
     )
+    if structurals == "standard":
+        save_path = save_path.replace(".pkl", "_no_struct.pkl")
 
     if os.path.exists(save_path):
         # Load static TDE covariances
@@ -143,6 +148,8 @@ if __name__ == "__main__":
         BASE_DIR, "data",
         f"dual_est_{modality}_{n_states}states_run{run_id}.pkl",
     )
+    if structurals == "standard":
+        save_path = save_path.replace(".pkl", "_no_struct.pkl")
 
     if os.path.exists(save_path):
         # Load state-specific TDE covariances
