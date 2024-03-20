@@ -336,7 +336,7 @@ def plot_null_distribution(null_dist, thresh, filename):
     
     return None
 
-def _categrozie_pvalue(pval):
+def _categorise_pvalue(pval):
     """Assigns a label indicating statistical significance that corresponds 
     to an input p-value.
 
@@ -412,7 +412,7 @@ def plot_single_grouped_violin(
         vmin = np.min(np.array(vmin))
         vmax = np.max(np.array(vmax))
         ht = (vmax - vmin) * 0.045
-        p_lbl = _categrozie_pvalue(pval)
+        p_lbl = _categorise_pvalue(pval)
         if p_lbl != "n.s.":
             ax.text(
                 vp.get_xticks(),
