@@ -229,12 +229,45 @@ if __name__ == "__main__":
     print("\n*** STEP 5: MULTI-CLASS AGE GROUP PREDICTION ***")
 
     print("(Step 5-1) Predicting with static network features ...")
-    repeated_multi_class_prediction(X_static, y_target, classifier=LogisticRegression(), n_splits=5, repeats=10)
+    static_test_scores = repeated_multi_class_prediction(
+        X_static,
+        y_target,
+        classifier=LogisticRegression(),
+        n_splits=5,
+        repeats=10,
+    )
 
     print("(Step 5-2) Predicting with dynamic network features ...")
-    repeated_multi_class_prediction(X_dynamic, y_target, classifier=LogisticRegression(), n_splits=5, repeats=10)
+    dynamic_test_scores = repeated_multi_class_prediction(
+        X_dynamic,
+        y_target,
+        classifier=LogisticRegression(),
+        n_splits=5,
+        repeats=10,
+    )
 
     print("(Step 5-3) Predicting with combined network features")
-    repeated_multi_class_prediction(X_all, y_target, classifier=LogisticRegression(), n_splits=5, repeats=10)
+    combined_test_scores = repeated_multi_class_prediction(
+        X_all,
+        y_target,
+        classifier=LogisticRegression(),
+        n_splits=5,
+        repeats=10,
+    )
+
+    # Save outputs
+    save_path = os.path.join(
+        BASE_DIR, "data",
+        f"pred_acc_{modality}_{n_states}states_run{run_id}.pkl",
+    )
+    if structurals == "standard":
+        save_path = save_path.replace(".pkl", "_no_struct.pkl")
+    
+    output = {
+        "static": static_test_scores,
+        "dynamic": dynamic_test_scores,
+        "combined": combined_test_scores,
+    }
+    save_data(output, save_path)
 
     print("Analysis complete.")
