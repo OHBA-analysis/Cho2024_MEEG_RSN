@@ -273,7 +273,7 @@ def max_stat_perm_test(
     return pvalues
 
 def multi_class_prediction(X, y, classifier, n_splits, seed=0):
-    """ Implements multi-class classifier to predict multiple class labels.
+    """Implements multi-class classifier to predict multiple class labels.
     
     - This function adopts the K-Fold Cross Validation method and computes the 
     mean validation accuracy over all folds.
@@ -289,6 +289,8 @@ def multi_class_prediction(X, y, classifier, n_splits, seed=0):
     y : np.ndarray
         Multi-class target vector (i.e., output features) to model.
         Shape must be (n_samples,).
+    classifier : sklearn estimator object
+        A classifier to use for a prediction task.
     n_splits : int
         Number of splits/folds for the k-fold cross validation step. Note that  
         n_splits should be less than the smallest cardinality of classes.
@@ -339,3 +341,50 @@ def multi_class_prediction(X, y, classifier, n_splits, seed=0):
     print(f"Test accuracy: {test_score}")
 
     return val_scores, test_score
+
+def repeated_multi_class_prediction(X, y, classifier, n_splits, repeats):
+    """Wrapper for `multi_class_prediction`. This function runs a multi-class 
+    prediction task multiple times and outputs a test score for each run.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        Input features to model. Shape must be (n_samples, n_features).
+    y : np.ndarray
+        Multi-class target vector (i.e., output features) to model.
+        Shape must be (n_samples,).
+    classifier : sklearn estimator object
+        A classifier to use for a prediction task.
+    n_splits : int
+        Number of splits/folds for the k-fold cross validation step. Note that  
+        n_splits should be less than the smallest cardinality of classes.
+    repeats : int or list of int
+        If int, a number of repeats to implement should be provided. The random seeds 
+        will be set from 0 to a designated integer. If list, random seed integers  
+        should be pre-specified.
+    
+    Returns
+    -------
+    test_scores : list of float
+        List containing test accuracy of each classification task.
+    """
+
+    # Validation
+    if isinstance(repeats, int):
+        repeats = np.arange(repeats)
+    n_repeats = len(repeats)
+    print(f"Total number of classification runs: {n_repeats}")
+
+    # Run multi-class prediction
+    test_scores = []
+    for i, r in enumerate(repeats):
+        print(f"[INFO] Repeat #{i + 1}")
+        _, test_score = multi_class_prediction(X, y, classifier, n_splits, seed=r)
+        test_scores.append(test_score)
+
+    # Report descriptive statistics
+    mean_test_score = np.mean(test_scores)
+    std_test_score = np.std(test_scores)
+    print(f"Mean test accuracy (w/ standard dev.): {mean_test_score} +/- {std_test_score}")
+
+    return test_scores

@@ -18,7 +18,7 @@ from utils.data import (load_data,
                         load_age_information,
                         get_raw_file_names)
 from utils.dynamic import compute_summary_statistics
-from utils.statistics import multi_class_prediction
+from utils.statistics import repeated_multi_class_prediction
 
 
 if __name__ == "__main__":
@@ -229,12 +229,12 @@ if __name__ == "__main__":
     print("\n*** STEP 5: MULTI-CLASS AGE GROUP PREDICTION ***")
 
     print("(Step 5-1) Predicting with static network features ...")
-    multi_class_prediction(X_static, y_target, classifier=LogisticRegression(), n_splits=5, seed=0)
+    repeated_multi_class_prediction(X_static, y_target, classifier=LogisticRegression(), n_splits=5, repeats=10)
 
     print("(Step 5-2) Predicting with dynamic network features ...")
-    multi_class_prediction(X_dynamic, y_target, classifier=LogisticRegression(), n_splits=5, seed=0)
+    repeated_multi_class_prediction(X_dynamic, y_target, classifier=LogisticRegression(), n_splits=5, repeats=10)
 
     print("(Step 5-3) Predicting with combined network features")
-    multi_class_prediction(X_all, y_target, classifier=LogisticRegression(), n_splits=5, seed=0)
+    repeated_multi_class_prediction(X_all, y_target, classifier=LogisticRegression(), n_splits=5, repeats=10)
 
     print("Analysis complete.")
