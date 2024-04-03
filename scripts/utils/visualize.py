@@ -575,6 +575,70 @@ def plot_state_spectra_group_diff(
 
     return None
 
+def plot_grouped_bars(dataframe, colors, filename, yline=None, return_objects=False):
+    """Plots a grouped bar graph. This function is customised specifically for 
+    the predictive accuracy values.
+
+    Parameters
+    ----------
+    dataframe : pandas.DataFrame
+        A dataframe containing data from classification tasks.
+    colors : list of str
+        A color palette to use.
+    filename : str
+        Path for saving the figure.
+    yline : float
+        Constant y-value to be plotted. Can be used to mark a random chance value.
+    return_objects : bool
+        Whether to return figure and axes objects. Deafult to False.
+        If set to True, filename will be ignored, and the figure won't be saved.
+
+    Returns
+    -------
+    fig : matplotlib.figure
+        The figure object.
+    ax : matplotlib.axes
+        The axes object.
+    """
+
+    # Get sample size
+    sample_size = int(
+        len(dataframe) / (dataframe["feature"].nunique() * dataframe["type"].nunique())
+    )
+
+    # Plot grouped bar plots
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    sns.barplot(
+        data=dataframe,
+        x="feature", y="value", hue="type",
+        width=0.8, gap=0.1,
+        errorbar="sd", capsize=0.2,
+        err_kws={"linewidth": 2},
+        palette=sns.color_palette(colors),
+        ax=ax, legend=False,
+    )
+
+    # Plot a random chance value
+    if yline is not None:
+        ax.axhline(y=yline, color="k", alpha=0.5, linewidth=2, linestyle="--")
+
+    # Adjust axes settings
+    ax.set_xticks([0, 1, 2])
+    ax.set_xticklabels(["Static", "Dynamic", "Combined"])
+    ax.set_xlabel("Features", fontsize=12)
+    ax.set_ylabel(f"Predictive Accuracy (n={sample_size})", fontsize=12)
+    ax.set_ylim([0, 1])
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.spines[["bottom", "left"]].set_linewidth(1.5)
+    ax.tick_params(width=1.5, labelsize=12)
+
+    if return_objects:
+        return fig, ax
+    else:
+        # Save figures
+        fig.savefig(filename)
+        return None
+
 class StaticVisualizer():
     """Class for visualizing static network features"""
     def __init__(self):
