@@ -509,3 +509,60 @@ def stat_ind_two_samples(samples1, samples2, alpha=0.05, bonferroni_ntest=None, 
     print(f"[Bonferroni Correction] Threshold: {alpha}, Significance: {sig_indicator}")
 
     return stat, pval, sig_indicator
+
+def stat_ind_one_samples(samples, popmean, alpha=0.05, bonferroni_ntest=None):
+    """Performs a one-sample independent T-Test.
+    
+    - Null hypothesis: the expected value (mean) of a sample of independent observations 
+    is equal to the given population mean.
+    - Alternative hypothesis: the expected value (mean) of a sample is greater than the 
+    given population mean.
+
+    Parameters
+    ----------
+    samples : np.ndarray
+        Array of sample data. Shape must be (n_samples,).
+    popmean : float
+        Expected value in null hypothesis.
+    alpha : float
+        Threshold to use for null hypothesis rejection. Defaults to 0.05.
+    bonferroni_ntest : int
+        Number of tests to be used for Bonferroni correction. Default to None.
+
+    Returns
+    -------
+    stat : float
+        The test statistic (i.e., t-statistics).
+    pval : float
+        The p-value of the test.
+    sig_indicator : bool
+        Whether the p-value is significant or not. If bonferroni_ntest is given, 
+        the p-value will be evaluated against the corrected threshold.
+    """
+
+    # Check normality assumption
+    print("*** Checking Normality Assumption ***")
+    nm_flag = True
+    stand_samples = stats.zscore(samples)
+    ks_res = stats.ks_1samp(stand_samples, cdf=stats.norm.cdf)
+    print(f"\t[KS Test] p-value: {ks_res.pvalue}")
+    if ks_res.pvalue < 0.05:
+        nm_flag = False
+        print(f"\t[KS Test] Null hypothesis rejected. The data are not distributed " + 
+            "according to the standard normal distribution.")
+    
+    # Compare one independent group
+    print("*** Comparing One Independent Group ***")
+    if not nm_flag:
+        warnings.warn("Caution: Sample distribution is not normal.", UserWarning)    
+    print("\tConducting the one-sample independent T-Test ...")
+    res = stats.ttest_1samp(samples, popmean=popmean, alternative="greater")
+    print(f"\tResult: statistic={res.statistic} | p-value={res.pvalue}")
+
+    # Apply Bonferroni correction
+    if bonferroni_ntest is not None:
+        alpha /= bonferroni_ntest
+    sig_indicator = res.pvalue < alpha
+    print(f"[Bonferroni Correction] Threshold: {alpha}, Significance: {sig_indicator}")
+
+    return res.statistic, res.pvalue, sig_indicator
