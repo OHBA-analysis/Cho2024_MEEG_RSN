@@ -226,6 +226,42 @@ def load_sex_information(subject_ids, modality):
 
     return sexes
 
+def load_handedness_information(subject_ids, modality):
+    """Get handedness of each subject. The handedness should be either 
+    left, right, or ambidextrous (and n/a).
+
+    Parameters
+    ----------
+    subject_ids : list of str
+        List of subject IDs.
+    modality : str
+        Type of data modality. Should be either "eeg" or "meg".
+
+    Returns
+    -------
+    handedness : np.ndarray
+        1D array marking handedness for each subject.
+        Left is marked by 0, right is marked by 1, and ambidextrous 
+        or other non-applicable cases are marekd by 2.
+    """
+
+    # Load meta data
+    meta_data = load_meta_data(modality)
+
+    # Get subject handedness
+    if modality == "eeg":
+        handedness = np.array([
+            1 if hand == "right" else 0 if hand == "left" else 2
+            for hand in [meta_data.loc[meta_data["ID"] == id]["Handedness"].values[0] for id in subject_ids]
+        ])
+    if modality == "meg":
+        handedness = np.array([
+            1 if hand > 0 else 0 if hand < 0 else 2
+            for hand in [meta_data.loc[meta_data["participant_id"] == id]["hand"].values[0] for id in subject_ids]
+        ])
+    
+    return handedness
+
 def load_headsize_information(subject_ids, modality):
     """Get headsize of each subject.
 
