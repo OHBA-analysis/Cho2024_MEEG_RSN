@@ -2,6 +2,7 @@
 
 """
 
+import warnings
 import numpy as np
 import glmtools as glm
 from scipy import stats
@@ -273,7 +274,7 @@ def max_stat_perm_test(
     return pvalues
 
 def multi_class_prediction(X, y, classifier, n_splits, seed=0):
-    """ Implements multi-class classifier to predict multiple class labels.
+    """Implements multi-class classifier to predict multiple class labels.
     
     - This function adopts the K-Fold Cross Validation method and computes the 
     mean validation accuracy over all folds.
@@ -289,6 +290,8 @@ def multi_class_prediction(X, y, classifier, n_splits, seed=0):
     y : np.ndarray
         Multi-class target vector (i.e., output features) to model.
         Shape must be (n_samples,).
+    classifier : sklearn estimator object
+        A classifier to use for a prediction task.
     n_splits : int
         Number of splits/folds for the k-fold cross validation step. Note that  
         n_splits should be less than the smallest cardinality of classes.
@@ -339,3 +342,227 @@ def multi_class_prediction(X, y, classifier, n_splits, seed=0):
     print(f"Test accuracy: {test_score}")
 
     return val_scores, test_score
+
+def repeated_multi_class_prediction(X, y, classifier, n_splits, repeats):
+    """Wrapper for `multi_class_prediction`. This function runs a multi-class 
+    prediction task multiple times and outputs a test score for each run.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        Input features to model. Shape must be (n_samples, n_features).
+    y : np.ndarray
+        Multi-class target vector (i.e., output features) to model.
+        Shape must be (n_samples,).
+    classifier : sklearn estimator object
+        A classifier to use for a prediction task.
+    n_splits : int
+        Number of splits/folds for the k-fold cross validation step. Note that  
+        n_splits should be less than the smallest cardinality of classes.
+    repeats : int or list of int
+        If int, a number of repeats to implement should be provided. The random seeds 
+        will be set from 0 to a designated integer. If list, random seed integers  
+        should be pre-specified.
+    
+    Returns
+    -------
+    test_scores : list of float
+        List containing test accuracy of each classification task.
+    """
+
+    # Validation
+    if isinstance(repeats, int):
+        repeats = np.arange(repeats)
+    n_repeats = len(repeats)
+    print(f"Total number of classification runs: {n_repeats}")
+
+    # Run multi-class prediction
+    test_scores = []
+    for i, r in enumerate(repeats):
+        print(f"[INFO] Repeat #{i + 1}")
+        _, test_score = multi_class_prediction(X, y, classifier, n_splits, seed=r)
+        test_scores.append(test_score)
+
+    # Report descriptive statistics
+    mean_test_score = np.mean(test_scores)
+    std_test_score = np.std(test_scores)
+    print(f"Mean test accuracy (w/ standard dev.): {mean_test_score} +/- {std_test_score}")
+
+    return test_scores
+
+def _check_stat_assumption(samples1, samples2, ks_alpha=0.05, ev_alpha=0.05):
+    """Checks normality of each sample and whether samples have an equal variance.
+
+    Parameters
+    ----------
+    samples1 : np.ndarray
+        Array of sample data (group 1). Shape must be (n_samples,).
+    samples2 : np.ndarray
+        Array of sample data (group 2). Shape must be (n_samples,).
+    ks_alpha : float
+        Threshold to use for null hypothesis rejection in the Kolmogorov-Smirnov test.
+        Defaults to 0.05.
+    ev_alpha : float
+        Threshold to use for null hypothesis rejection in the equal variance test.
+        This test can be the Levene's test or Bartlett's test, depending on the 
+        normality of sample distributions. Defaults to 0.05.
+
+    Returns
+    -------
+    nm_flag : bool
+        If True, both samples follow a normal distribution.
+    ev_flag : bool
+        If True, two sample groups have an equal variance.
+    """
+
+    # Set flags for normality and equal variance
+    nm_flag, ev_flag = True, True
+    print("*** Checking Normality & Equal Variance Assumptions ***")
+
+    # Check normality assumption
+    ks_pvals = []
+    for s, samples in enumerate([samples1, samples2]):
+        stand_samples = stats.zscore(samples)
+        res = stats.ks_1samp(stand_samples, cdf=stats.norm.cdf)
+        ks_pvals.append(res.pvalue)
+        print(f"\t[KS Test] p-value (Sample #{s}): {res.pvalue}")
+        if res.pvalue < ks_alpha:
+             print(f"\t[KS Test] Sample #{s}: Null hypothesis rejected. The data are not distributed " + 
+                   "according to the standard normal distribution.")
+    
+    # Check equal variance assumption
+    if np.sum([pval < ks_alpha for pval in ks_pvals]) != 0:
+        nm_flag = False
+        # Levene's test
+        _, ev_pval = stats.levene(samples1, samples2)
+        ev_test_name = "Levene's"
+    else:
+        # Bartlett's test
+        _, ev_pval = stats.bartlett(samples1, samples2)
+        ev_test_name = "Bartlett's"
+    print(f"\t[{ev_test_name} Test] p-value: ", ev_pval)
+    if ev_pval < ev_alpha:
+        print(f"\t[{ev_test_name} Test] Null hypothesis rejected. The populations do not have equal variances.")
+        ev_flag = False
+
+    return nm_flag, ev_flag
+
+def stat_ind_two_samples(samples1, samples2, alpha=0.05, bonferroni_ntest=None, test=None):
+    """Performs a statistical test comparing two independent samples.
+
+    Parameters
+    ----------
+    samples1 : np.ndarray
+        Array of sample data (group 1). Shape must be (n_samples,).
+    samples2 : np.ndarray
+        Array of sample data (group 2). Shape must be (n_samples,).
+    alpha : float
+        Threshold to use for null hypothesis rejection. Defaults to 0.05.
+    bonferroni_ntest : int
+        Number of tests to be used for Bonferroni correction. Default to None.
+    test : str
+        Statistical test to use. Defaults to None, which automatically selects
+        the test after checking the assumptions.
+
+    Returns
+    -------
+    stat : float
+        The test statistic. The test can be the Student's t-test, Welch's t-test, 
+        or Wilcoxon Rank Sum test depending on the test assumptions.
+    pval : float
+        The p-value of the test.
+    sig_indicator : bool
+        Whether the p-value is significant or not. If bonferroni_ntest is given, 
+        the p-value will be evaluated against the corrected threshold.
+    """
+
+    # Check normality and equal variance assumption
+    if test is None:
+        nm_flag, ev_flag = _check_stat_assumption(samples1, samples2)
+    else:
+        if test == "ttest":
+            nm_flag, ev_flag = True, True
+        elif test == "welch":
+            nm_flag, ev_flag = True, False
+        elif test == "wilcoxon":
+            nm_flag, ev_flag = False, True
+
+    # Compare two independent groups
+    print("*** Comparing Two Independent Groups ***")
+    if nm_flag and ev_flag:
+        print("\tConducting the two-samples independent T-Test ...")
+        stat, pval = stats.ttest_ind(samples1, samples2, equal_var=True)
+    if nm_flag and not ev_flag:
+        print("\tConducting the Welch's t-test ...")
+        stat, pval = stats.ttest_ind(samples1, samples2, equal_var=False)
+    if not nm_flag:
+        print("\tConducting the Wilcoxon Rank Sum test ...")
+        if not ev_flag:
+            warnings.warn("Caution: Distributions have unequal variances.", UserWarning)
+        stat, pval = stats.ranksums(samples1, samples2)
+    print(f"\tResult: statistic={stat} | p-value={pval}")
+
+    # Apply Bonferroni correction
+    if bonferroni_ntest is not None:
+        alpha /= bonferroni_ntest
+    sig_indicator = pval < alpha
+    print(f"[Bonferroni Correction] Threshold: {alpha}, Significance: {sig_indicator}")
+
+    return stat, pval, sig_indicator
+
+def stat_ind_one_samples(samples, popmean, alpha=0.05, bonferroni_ntest=None):
+    """Performs a one-sample independent T-Test.
+    
+    - Null hypothesis: the expected value (mean) of a sample of independent observations 
+    is equal to the given population mean.
+    - Alternative hypothesis: the expected value (mean) of a sample is greater than the 
+    given population mean.
+
+    Parameters
+    ----------
+    samples : np.ndarray
+        Array of sample data. Shape must be (n_samples,).
+    popmean : float
+        Expected value in null hypothesis.
+    alpha : float
+        Threshold to use for null hypothesis rejection. Defaults to 0.05.
+    bonferroni_ntest : int
+        Number of tests to be used for Bonferroni correction. Default to None.
+
+    Returns
+    -------
+    stat : float
+        The test statistic (i.e., t-statistics).
+    pval : float
+        The p-value of the test.
+    sig_indicator : bool
+        Whether the p-value is significant or not. If bonferroni_ntest is given, 
+        the p-value will be evaluated against the corrected threshold.
+    """
+
+    # Check normality assumption
+    print("*** Checking Normality Assumption ***")
+    nm_flag = True
+    stand_samples = stats.zscore(samples)
+    ks_res = stats.ks_1samp(stand_samples, cdf=stats.norm.cdf)
+    print(f"\t[KS Test] p-value: {ks_res.pvalue}")
+    if ks_res.pvalue < 0.05:
+        nm_flag = False
+        print(f"\t[KS Test] Null hypothesis rejected. The data are not distributed " + 
+            "according to the standard normal distribution.")
+    
+    # Compare one independent group
+    print("*** Comparing One Independent Group ***")
+    if not nm_flag:
+        warnings.warn("Caution: Sample distribution is not normal.", UserWarning)    
+    print("\tConducting the one-sample independent T-Test ...")
+    res = stats.ttest_1samp(samples, popmean=popmean, alternative="greater")
+    print(f"\tResult: statistic={res.statistic} | p-value={res.pvalue}")
+
+    # Apply Bonferroni correction
+    if bonferroni_ntest is not None:
+        alpha /= bonferroni_ntest
+    sig_indicator = res.pvalue < alpha
+    print(f"[Bonferroni Correction] Threshold: {alpha}, Significance: {sig_indicator}")
+
+    return res.statistic, res.pvalue, sig_indicator

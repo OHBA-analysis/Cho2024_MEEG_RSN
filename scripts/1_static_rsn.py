@@ -20,31 +20,49 @@ if __name__ == "__main__":
     print("*** STEP 1: SETTINGS ***")
 
     # Set hyperparameters
-    if len(argv) != 2:
-        print("Need to pass one argument: data modality (e.g., python script.py eeg)")
+    if len(argv) != 4:
+        print("Need to pass three arguments: data modality, data type, and structural type "
+         + "(e.g., python script.py eeg full subject)")
         exit()
     modality = argv[1] # data modality
+    data_type = argv[2] # type of datasets to use
+    structurals = argv[3] # type of structurals to use
     if modality not in ["eeg", "meg"]:
         raise ValueError("modality should be either 'eeg' or 'meg'.")
-    print(f"[INFO] Data Modality: {modality.upper()}")
+    if data_type not in ["full", "split1", "split2"]:
+        raise ValueError("invalid data type.")
+    print(f"[INFO] Data Modality: {modality.upper()} | Data Type: {data_type} | Structurals: {structurals}")
+
+    # Define dataset name 
+    if modality == "eeg":
+        data_name = "lemon"
+    else: data_name = "camcan"
 
     # Set directory paths
     BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
     PROJECT_DIR = "/well/woolrich/projects"
-    if modality == "eeg":
-        DATA_DIR = os.path.join(PROJECT_DIR, "lemon/scho23")
-    if modality == "meg":
-        DATA_DIR = os.path.join(PROJECT_DIR, "camcan/scho23")
+    DATA_DIR = PROJECT_DIR + f"/{data_name}/scho23"
     SAVE_DIR = BASE_DIR + f"/results/static/{modality}"
+    if data_type != "full":
+        SAVE_DIR = SAVE_DIR.replace(
+            f"static/{modality}", f"reprod/{data_type}/{data_name}/static"
+        )
+    if structurals == "standard":
+        SAVE_DIR = SAVE_DIR.replace("static", "static_no_struct")
     TMP_DIR = SAVE_DIR + "/tmp"
     os.makedirs(SAVE_DIR, exist_ok=True)
     os.makedirs(TMP_DIR, exist_ok=True)
 
     # Load subject information
     print("(Step 1-1) Loading subject information ...")
-    age_group_idx = load_data(os.path.join(BASE_DIR, "data/age_group_idx.pkl"))
-    subject_ids_young = age_group_idx[modality]["subject_ids_young"]
-    subject_ids_old = age_group_idx[modality]["subject_ids_old"]
+    if data_type == "full":
+        age_group_idx = load_data(os.path.join(BASE_DIR, "data/age_group_idx.pkl"))
+        subject_ids_young = age_group_idx[modality]["subject_ids_young"]
+        subject_ids_old = age_group_idx[modality]["subject_ids_old"]
+    else:
+        age_group_idx = load_data(os.path.join(BASE_DIR, "data/age_group_split_idx.pkl"))
+        subject_ids_young = age_group_idx[modality][data_type]["subject_ids_young"]
+        subject_ids_old = age_group_idx[modality][data_type]["subject_ids_old"]
     subject_ids = np.concatenate((subject_ids_young, subject_ids_old))
     print("Total # of subjects: {} (Young: {}, Old: {})".format(
         len(subject_ids),
@@ -54,7 +72,7 @@ if __name__ == "__main__":
 
     # Get data files
     print("(Step 1-2) Getting data files ...")
-    file_names = get_raw_file_names(DATA_DIR, subject_ids, modality)
+    file_names = get_raw_file_names(DATA_DIR, subject_ids, modality, structurals)
 
     # Load subject-wise data arrays
     print("(Step 1-3) Loading data recordings ...")
@@ -80,7 +98,12 @@ if __name__ == "__main__":
     # ---------------------------------------------- #
     print("\n*** STEP 2: STATIC NETWORK FEATURE COMPUTATIONS ***")
 
-    save_path = os.path.join(BASE_DIR, f"data/static_network_features_{modality}.pkl")
+    save_path = os.path.join(
+        BASE_DIR, "data",
+        f"static_network_features_{modality}_{data_type}.pkl"
+    )
+    if structurals == "standard":
+        save_path = save_path.replace(".pkl", "_no_struct.pkl")
     
     if os.path.exists(save_path):
         # Load static network features
@@ -158,7 +181,7 @@ if __name__ == "__main__":
             "cmap": cmap_hot_tp,
         },
     )
-
+    
     # Plot static wide-band AEC map (averaged over all subjects)
     gconn_all = np.mean(conn_maps, axis=0) # dim: (n_parcels, n_parcels)
     gconn_all = connectivity.threshold(

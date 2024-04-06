@@ -226,6 +226,42 @@ def load_sex_information(subject_ids, modality):
 
     return sexes
 
+def load_handedness_information(subject_ids, modality):
+    """Get handedness of each subject. The handedness should be either 
+    left, right, or ambidextrous (and n/a).
+
+    Parameters
+    ----------
+    subject_ids : list of str
+        List of subject IDs.
+    modality : str
+        Type of data modality. Should be either "eeg" or "meg".
+
+    Returns
+    -------
+    handedness : np.ndarray
+        1D array marking handedness for each subject.
+        Left is marked by 0, right is marked by 1, and ambidextrous 
+        or other non-applicable cases are marekd by 2.
+    """
+
+    # Load meta data
+    meta_data = load_meta_data(modality)
+
+    # Get subject handedness
+    if modality == "eeg":
+        handedness = np.array([
+            1 if hand == "right" else 0 if hand == "left" else 2
+            for hand in [meta_data.loc[meta_data["ID"] == id]["Handedness"].values[0] for id in subject_ids]
+        ])
+    if modality == "meg":
+        handedness = np.array([
+            1 if hand > 0 else 0 if hand < 0 else 2
+            for hand in [meta_data.loc[meta_data["participant_id"] == id]["hand"].values[0] for id in subject_ids]
+        ])
+    
+    return handedness
+
 def load_headsize_information(subject_ids, modality):
     """Get headsize of each subject.
 
@@ -260,7 +296,7 @@ def load_headsize_information(subject_ids, modality):
 
     return np.array(headsizes)
 
-def load_order(modality, n_states, data_type, run_id):
+def load_order(modality, n_states, data_type, run_id, structurals):
     """Extract a state/mode order of a given run written on the
        excel sheet. This order can be used to match the states/
        modes of a run to those of the reference run.
@@ -275,6 +311,9 @@ def load_order(modality, n_states, data_type, run_id):
         Type of the dataset. Should be "full", "split1", or "split2".
     run_id : int
         Number of the model run.
+    structurals : str
+        Type of the structural files used. Should be either "subject" 
+        (individual sMRI files) or "standard" (standard MNE file).
 
     Returns
     -------
@@ -294,7 +333,11 @@ def load_order(modality, n_states, data_type, run_id):
     
     # Get list of orders
     BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
-    df = pd.read_excel(os.path.join(BASE_DIR, "data/run_orders.xlsx"))
+    if structurals == "subject":
+        data_path = os.path.join(BASE_DIR, "data/run_orders.xlsx")
+    if structurals == "standard":
+        data_path = os.path.join(BASE_DIR, "data/run_orders_no_struct.xlsx")
+    df = pd.read_excel(data_path)
 
     # Extract the order of a given run
     index = np.logical_and.reduce((
@@ -311,7 +354,7 @@ def load_order(modality, n_states, data_type, run_id):
     
     return order
 
-def get_raw_file_names(data_dir, subject_ids, modality):
+def get_raw_file_names(data_dir, subject_ids, modality, structurals):
     """Get paths to raw M/EEG recordings that correspond to given 
        subject IDs.
 
@@ -323,6 +366,9 @@ def get_raw_file_names(data_dir, subject_ids, modality):
         List of subject IDs.
     modality : str
         Type of the modality. Should be either "eeg" or "meg".
+    structurals : str
+        Type of the structural files used. Should be either "subject" 
+        (individual sMRI files) or "standard" (standard MNE file).
 
     Returns
     -------
@@ -333,14 +379,17 @@ def get_raw_file_names(data_dir, subject_ids, modality):
     # Validation
     if modality not in ["eeg", "meg"]:
         raise ValueError("modality should be either 'eeg' or 'meg'.")
+    if structurals == "standard":
+        struct_dir = "_no_struct"
+    else: struct_dir = ""
     
     # Get file names
     file_names = []
     if modality == "eeg":
-        filename = os.path.join(data_dir, "src_ec/{}/sflip_parc-raw.npy")
+        filename = os.path.join(data_dir, "src_ec{}/{}/sflip_parc-raw.npy")
     else:
-        filename = os.path.join(data_dir, "src/{}/sflip_parc-raw.fif")
+        filename = os.path.join(data_dir, "src{}/{}/sflip_parc-raw.fif")
     for id in subject_ids:
-        file_names.append(filename.format(id))
+        file_names.append(filename.format(struct_dir, id))
     
     return file_names

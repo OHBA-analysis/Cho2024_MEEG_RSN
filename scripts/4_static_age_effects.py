@@ -21,18 +21,21 @@ if __name__ == "__main__":
     print("*** STEP 1: SETTINGS ***")
 
     # Set hyperparameters
-    if len(argv) != 2:
-        print("Need to pass one argument: data modality (e.g., python script.py eeg)")
+    if len(argv) != 3:
+        print("Need to pass two arguments: data modality and structural type (e.g., python script.py eeg subject)")
         exit()
     modality = argv[1] # data modality
+    structurals = argv[2] # type of structurals to use
     if modality not in ["eeg", "meg"]:
         raise ValueError("modality should be either 'eeg' or 'meg'.")
-    print(f"[INFO] Data Modality: {modality.upper()}")
+    print(f"[INFO] Data Modality: {modality.upper()} | Structurals: {structurals}")
 
     # Set directory paths
     BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
     DATA_DIR = os.path.join(BASE_DIR, "data")
     SAVE_DIR = os.path.join(BASE_DIR, f"results/static/{modality}")
+    if structurals == "standard":
+        SAVE_DIR = SAVE_DIR.replace("static/", "static_no_struct/")
 
     # Load subject information
     print("(Step 1-1) Loading subject information ...")
@@ -53,6 +56,8 @@ if __name__ == "__main__":
 
     # Load subject-level network features
     data_path = os.path.join(DATA_DIR, f"static_network_features_{modality}.pkl")
+    if structurals == "standard":
+        data_path = data_path.replace(".pkl", "_no_struct.pkl")
     static_network_features = load_data(data_path)
     freqs, psds, weights, power_maps, conn_maps = static_network_features.values()
 
