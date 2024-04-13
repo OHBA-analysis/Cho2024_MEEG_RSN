@@ -332,7 +332,7 @@ def load_order(modality, n_states, data_type, run_id, structurals):
         raise ValueError("input data type not unavailable.")
     
     # Get list of orders
-    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2024_MEEG_RSN"
     if structurals == "subject":
         data_path = os.path.join(BASE_DIR, "data/run_orders.xlsx")
     if structurals == "standard":

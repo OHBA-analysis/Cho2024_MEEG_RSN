@@ -24,7 +24,7 @@ if __name__ == "__main__":
           + f" Run: run{run_ids[0]} - run{run_ids[1]} | Structurals: {structurals}")
     
     # Set directories
-    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN/results/dynamic"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2024_MEEG_RSN/results/dynamic"
     if data_type != "full":
         BASE_DIR = BASE_DIR.replace("dynamic", f"reprod/{data_type}")
     if structurals == "standard":

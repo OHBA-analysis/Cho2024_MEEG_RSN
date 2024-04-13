@@ -50,7 +50,7 @@ if __name__ == "__main__":
     else: data_name = "camcan"
 
     # Set directory paths
-    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2024_MEEG_RSN"
     PROJECT_DIR = "/well/woolrich/projects"
     if modality == "eeg":
         DATA_DIR = os.path.join(PROJECT_DIR, "lemon/scho23")

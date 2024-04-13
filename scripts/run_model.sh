@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH -D /well/woolrich/users/olt015/Cho2023_EEG_RSN/results/dynamic_no_struct/camcan
+#SBATCH -D /well/woolrich/users/olt015/Cho2024_MEEG_RSN/results/dynamic_no_struct/camcan
 #SBATCH -p gpu_short
 #SBATCH --gres gpu:1
 #SBATCH --mem-per-gpu 80G
@@ -46,4 +46,4 @@ module load cuDNN
 
 # Run scripts
 conda activate /well/woolrich/users/olt015/conda/skylake/envs/osld
-python /well/woolrich/users/olt015/Cho2023_EEG_RSN/scripts/${1}_${2}.py ${3} ${4} ${5} ${6}
+python /well/woolrich/users/olt015/Cho2024_MEEG_RSN/scripts/${1}_${2}.py ${3} ${4} ${5} ${6}

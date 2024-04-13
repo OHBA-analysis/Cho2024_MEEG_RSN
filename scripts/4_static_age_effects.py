@@ -31,7 +31,7 @@ if __name__ == "__main__":
     print(f"[INFO] Data Modality: {modality.upper()} | Structurals: {structurals}")
 
     # Set directory paths
-    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2024_MEEG_RSN"
     DATA_DIR = os.path.join(BASE_DIR, "data")
     SAVE_DIR = os.path.join(BASE_DIR, f"results/static/{modality}")
     if structurals == "standard":

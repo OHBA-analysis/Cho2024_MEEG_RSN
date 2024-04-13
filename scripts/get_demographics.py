@@ -25,7 +25,7 @@ if __name__ == "__main__":
     print(f"[INFO] Data Modality: {modality.upper()}")
 
     # Set directory paths
-    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2024_MEEG_RSN"
 
     # Load subject information
     print("(Step 1-1) Loading subject information ...")

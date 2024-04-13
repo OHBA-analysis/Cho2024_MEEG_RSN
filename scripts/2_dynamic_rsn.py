@@ -41,7 +41,7 @@ if __name__ == "__main__":
     else: data_name = "camcan"
 
     # Set directory paths
-    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2024_MEEG_RSN"
     DATA_DIR = BASE_DIR + f"/results/dynamic/{data_name}/state{n_states}/run{run_id}"
     if data_type != "full":
         DATA_DIR = DATA_DIR.replace("dynamic", f"reprod/{data_type}")

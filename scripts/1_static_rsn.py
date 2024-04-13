@@ -39,7 +39,7 @@ if __name__ == "__main__":
     else: data_name = "camcan"
 
     # Set directory paths
-    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2024_MEEG_RSN"
     PROJECT_DIR = "/well/woolrich/projects"
     DATA_DIR = PROJECT_DIR + f"/{data_name}/scho23"
     SAVE_DIR = BASE_DIR + f"/results/static/{modality}"

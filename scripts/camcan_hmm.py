@@ -35,7 +35,7 @@ if __name__ == "__main__":
     tf_ops.gpu_growth()
 
     # Set output direcotry path
-    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2024_MEEG_RSN"
     output_dir = f"{BASE_DIR}/results/dynamic/camcan/state{n_states}/run{run}"
     if data_type != "full":
         output_dir = output_dir.replace("dynamic", f"reprod/{data_type}")

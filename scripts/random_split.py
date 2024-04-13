@@ -16,7 +16,7 @@ if __name__ == "__main__":
     np.random.seed(n_seed)
 
     # Set directory paths
-    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2024_MEEG_RSN"
     SAVE_DIR = BASE_DIR + "/data"
 
     # Load meta data and subject IDs

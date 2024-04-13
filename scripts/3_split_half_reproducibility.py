@@ -22,7 +22,7 @@ if __name__ == "__main__":
     print("*** STEP 1: SETTINGS ***")
 
     # Set directory paths
-    BASE_DIR = "/well/woolrich/users/olt015/Cho2023_EEG_RSN"
+    BASE_DIR = "/well/woolrich/users/olt015/Cho2024_MEEG_RSN"
     DATA_DIR = BASE_DIR + "/results/reprod"
 
     # Set hyperparameters for the data to unpack
