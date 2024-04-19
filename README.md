@@ -12,9 +12,7 @@ This repository contains all the scripts necessary to reproduce the analysis and
 2. `data_preparation`: Contains the scripts for preprocessing and source reconstructing the sensor-level M/EEG data.
 3. `scripts`: Contains the scripts for training TDE-HMM models and analysing static and dynamic M/EEG resting-state networks.
 
-For further details, please refer to the README files within each folders.
-
-NOTE: Most of the codes within this repository were executed on the Oxford Biomedical Research Computing (BMRC) servers. While individual threads were allocated varying CPUs and GPUs, general information about the BRMC resources can be found at [_Using the BMRC Cluster with Slurm_](https://www.medsci.ox.ac.uk/for-staff/resources/bmrc/using-the-bmrc-cluster-with-slurm) and [_GPU Resources_](https://www.medsci.ox.ac.uk/for-staff/resources/bmrc/gpu-resources).
+**NOTE:** Most of the codes within this repository were executed on the Oxford Biomedical Research Computing (BMRC) servers. While individual threads were allocated varying CPUs and GPUs, general information about the BRMC resources can be found at [_Using the BMRC Cluster with Slurm_](https://www.medsci.ox.ac.uk/for-staff/resources/bmrc/using-the-bmrc-cluster-with-slurm) and [_GPU Resources_](https://www.medsci.ox.ac.uk/for-staff/resources/bmrc/gpu-resources).
 
 ## 🎯 Requirements
 To start, you first need to install the [`OSL`](https://github.com/OHBA-analysis/osl) and [`osl-dynamics`](https://github.com/OHBA-analysis/osl-dynamics) packages and set up its environment. Its installation guide can be found [here](https://osl.readthedocs.io/en/latest/install.html).
