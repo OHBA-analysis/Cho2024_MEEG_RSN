@@ -9,7 +9,7 @@ This repository contains the scripts and data for reproducing results in the "Co
 This repository contains all the scripts necessary to reproduce the analysis and figures presented in the manuscript. It is divided into three main directories:
 
 1. `data`: Contains the optimal HMM models trained on the MEG Cam-CAN and EEG LEMON datasets.
-2. `examples`: Contains the scripts for preprocessing and source reconstructing the sensor-level M/EEG data.
+2. `data_preparation`: Contains the scripts for preprocessing and source reconstructing the sensor-level M/EEG data.
 3. `scripts`: Contains the scripts for training TDE-HMM models and analysing static and dynamic M/EEG resting-state networks.
 
 For further details, please refer to the README files within each folders.
