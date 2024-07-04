@@ -2,7 +2,7 @@
 
 This repository contains the scripts and data for reproducing results in the "Comparison between EEG and MEG of static and dynamic resting-state networks" manuscript.
 
-💡 Please email SungJun Cho at sungjun.cho@psych.ox.ac.uk or simply raise GitHub Issues if you have any questions or concerns.
+💡 Please email SungJun Cho at sungjun.cho@ndcn.ox.ac.uk or simply raise GitHub Issues if you have any questions or concerns.
 
 ## ⚡️ Getting Started
 
