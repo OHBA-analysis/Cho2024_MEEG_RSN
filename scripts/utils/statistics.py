@@ -7,7 +7,7 @@ import numpy as np
 import glmtools as glm
 from scipy import stats
 from sklearn.decomposition import PCA
-from sklearn.model_selection import KFold, GridSearchCV, train_test_split
+from sklearn.model_selection import KFold, GridSearchCV, cross_val_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from utils.data import load_sex_information, load_headsize_information
@@ -276,12 +276,11 @@ def max_stat_perm_test(
 def multi_class_prediction(X, y, classifier, n_splits, seed=0):
     """Implements multi-class classifier to predict multiple class labels.
     
-    - This function adopts the K-Fold Cross Validation method and computes the 
-    mean validation accuracy over all folds.
-    - The model with best validation accuracy is selected to predict on the 
-    test dataset.
-    - In each fold iteration, a grid search over pre-specified hyperparameter 
-    grids is conducted to choose the best hyperparameters.
+    - This function adopts the nested cross-validation method.
+    - In the inner loop, a grid search over pre-specified hyperparameter 
+    grids is conducted to choose the best hyperparameters. 
+    - In the outer loop, the mean test accuracy over all folds is computed 
+    to estimate the generalisation error.
 
     Parameters
     ----------
@@ -300,14 +299,13 @@ def multi_class_prediction(X, y, classifier, n_splits, seed=0):
     
     Returns
     -------
-    val_scores : list of float
-        List containing validation accuracy of each fold.
     test_score : float
-        Test accuracy from the best model fit.
+        Mean test accuracy from the nested cross-validation.
     """
 
     # Initiate k-fold cross validation
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    outer_cv = KFold(n_splits=n_splits, shuffle=True, random_state=seed) # divide data into train and test sets
+    inner_cv = KFold(n_splits=5, shuffle=True, random_state=seed) # divide train set into train and validation sets
 
     # Construct prediction pipeline
     pipeline = Pipeline([
@@ -319,29 +317,16 @@ def multi_class_prediction(X, y, classifier, n_splits, seed=0):
     # Set hyperparameter grids
     param_grid = {"pca__n_components": [10, 20, 30]}
 
-    # Split datasets
-    X_fold, X_test, y_fold, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
-
     # Perform classifier-based prediction
-    val_scores = []
-    best_score = 0
-    for fold, (train_indices, val_indices) in enumerate(kf.split(y_fold)):
-        X_train, X_val, y_train, y_val = X_fold[train_indices], X_fold[val_indices], y_fold[train_indices], y_fold[val_indices]
-        clf = GridSearchCV(pipeline, param_grid, n_jobs=8)
-        clf.fit(X_train, y_train)
-        score = clf.score(X_val, y_val)
-        val_scores.append(score)
-        if score > best_score:
-            best_score = score
-            best_clf = clf
-        print(f"Fold {fold}: best_params={clf.best_params_} accuracy={score}")
-    print(f"Mean validation accuracy (w/ standard dev.): {np.mean(val_scores)} +/- {np.std(val_scores)}")
-    
-    # Make prediction on the test dataset
-    test_score = best_clf.score(X_test, y_test)
-    print(f"Test accuracy: {test_score}")
+    clf = GridSearchCV(pipeline, param_grid, cv=inner_cv, n_jobs=5) # inner cross-validation for hyperparameter search
+    test_scores = cross_val_score(clf, X, y, cv=outer_cv, n_jobs=5) # outer cross-validation for test evaluation
+    test_score = test_scores.mean()
+    print(
+        "The mean test accuracy using nested cross-validation: "
+        f"{test_scores.mean():.3f} +/- {test_scores.std():.3f}"
+    )
 
-    return val_scores, test_score
+    return test_score
 
 def repeated_multi_class_prediction(X, y, classifier, n_splits, repeats):
     """Wrapper for `multi_class_prediction`. This function runs a multi-class 
@@ -380,8 +365,9 @@ def repeated_multi_class_prediction(X, y, classifier, n_splits, repeats):
     test_scores = []
     for i, r in enumerate(repeats):
         print(f"[INFO] Repeat #{i + 1}")
-        _, test_score = multi_class_prediction(X, y, classifier, n_splits, seed=r)
-        test_scores.append(test_score)
+        test_scores.append(
+            multi_class_prediction(X, y, classifier, n_splits, seed=r)
+        )
 
     # Report descriptive statistics
     mean_test_score = np.mean(test_scores)
