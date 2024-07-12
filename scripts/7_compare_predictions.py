@@ -83,10 +83,6 @@ if __name__ == "__main__":
     # ------------------------ #
     print("\n*** STEP 3: PREDICTIVE ACCURACY VISUALISATION ***")
 
-    # Set visualisation parameters
-    palette1 = ["#696969", "#FFAE42"] # grey vs. orange
-    palette2 = ["#5F4B8B", "#E69A8D"] # purple vs. pink
-
     # Plot bar graphs comparing structurals vs. no structurals
     for modality in ["eeg", "meg"]:
         dataset = {"structurals": data_ys[modality], "no_structurals": data_ns[modality]}
@@ -97,11 +93,12 @@ if __name__ == "__main__":
                     rows.append({"value": value, "feature": feature_name, "type": struct_type})
         df = pd.DataFrame.from_dict(data=rows)
         plot_grouped_bars(
-            df, colors=palette1,
+            df, colors="transparent", add_hatch=True,
             filename=os.path.join(SAVE_DIR, f"clf_performance_{modality}.png"),
         )
 
     # Plot bar graphs comparing EEG vs. MEG (only for structurals)
+    palette = ["#5F4B8B", "#E69A8D"] # purple vs. pink
     dataset = {"eeg": data_ys["eeg"], "meg": data_ys["meg"]}
     rows = []
     for modality, features in dataset.items():
@@ -110,7 +107,7 @@ if __name__ == "__main__":
                 rows.append({"value": value, "feature": feature_name, "type": modality})
     df = pd.DataFrame.from_dict(data=rows)
     plot_grouped_bars(
-        df, colors=palette2, yline=0.5,
+        df, colors=palette, yline=0.5,
         filename=os.path.join(SAVE_DIR, f"clf_performance_modality.png"),
     )
 

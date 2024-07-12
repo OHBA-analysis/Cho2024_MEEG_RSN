@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import LinearSegmentedColormap, Normalize, CenteredNorm
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from itertools import cycle
 from nilearn.plotting import plot_glass_brain
 from osl_dynamics import files
 from osl_dynamics.analysis import power, connectivity
@@ -575,7 +576,14 @@ def plot_state_spectra_group_diff(
 
     return None
 
-def plot_grouped_bars(dataframe, colors, filename, yline=None, return_objects=False):
+def plot_grouped_bars(
+        dataframe,
+        colors,
+        filename,
+        yline=None,
+        add_hatch=False,
+        return_objects=False
+    ):
     """Plots a grouped bar graph. This function is customised specifically for 
     the predictive accuracy values.
 
@@ -583,12 +591,16 @@ def plot_grouped_bars(dataframe, colors, filename, yline=None, return_objects=Fa
     ----------
     dataframe : pandas.DataFrame
         A dataframe containing data from classification tasks.
-    colors : list of str
-        A color palette to use.
+    colors : list of str or str
+        A color palette to use as a list. If a string "transparent" is given,
+        bar graphs will have transparent face colours.
     filename : str
         Path for saving the figure.
     yline : float
         Constant y-value to be plotted. Can be used to mark a random chance value.
+        Defaults to None.
+    add_hatch : bool
+        Whether to add hatched patterns to bars. Default to False.
     return_objects : bool
         Whether to return figure and axes objects. Deafult to False.
         If set to True, filename will be ignored, and the figure won't be saved.
@@ -606,6 +618,15 @@ def plot_grouped_bars(dataframe, colors, filename, yline=None, return_objects=Fa
         len(dataframe) / (dataframe["feature"].nunique() * dataframe["type"].nunique())
     )
 
+    # Set colors
+    if colors == "transparent":
+        palette = None
+        ec = "#696969"
+        lw = 1.5
+    else:
+        palette = sns.color_palette(colors)
+        ec, lw = None, None
+
     # Plot grouped bar plots
     fig, ax = plt.subplots(nrows=1, ncols=1)
     sns.barplot(
@@ -614,9 +635,26 @@ def plot_grouped_bars(dataframe, colors, filename, yline=None, return_objects=Fa
         width=0.8, gap=0.1,
         errorbar="sd", capsize=0.2,
         err_kws={"linewidth": 2},
-        palette=sns.color_palette(colors),
+        palette=palette,
+        edgecolor=ec, linewidth=lw,
         ax=ax, legend=False,
     )
+
+    # Apply facecolor separately to each patch if colors are transparent
+    if colors == "transparent":
+        for patch in ax.patches:
+            patch.set_facecolor((0, 0, 0, 0)) # make transparent bars
+    # NOTE: Setting facecolor should be done separately or else it will 
+    #       interfere with setting the colour palette.
+
+    # Add hatch patterns
+    if add_hatch:
+        hatches = cycle(["", "//"])
+        num_category = dataframe["feature"].nunique()
+        for i, patch in enumerate(ax.patches):
+            if i % num_category == 0: # in grouped bar plots, patches loop over categories
+                hatch = next(hatches)
+            patch.set_hatch(hatch)
 
     # Plot a random chance value
     if yline is not None:
