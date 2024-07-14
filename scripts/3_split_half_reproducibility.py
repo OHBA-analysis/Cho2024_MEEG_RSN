@@ -13,6 +13,7 @@ from utils.array_ops import reorder_matrix_by_indices
 from utils.data import load_data, load_order
 from utils.dynamic import between_state_rv_coefs, js_distance_matrix
 from utils.statistics import stat_ind_two_samples
+from utils.visualize import load_accessible_colors
 
 
 if __name__ == "__main__":
@@ -126,7 +127,7 @@ if __name__ == "__main__":
         "EEG 2nd\nMEG 1st",
         "EEG 2nd\nMEG 2nd",
     ] # names of comparisons
-    colors = ["#955196", "#dd5182", "#003f5c", "#444e86", "#ff6e54", "#ffa600"] # colors for each pair
+    colors = load_accessible_colors(sel_ind=[5, 4, 0, 1, 3, 2]) # colors for each pair
 
     # Plot RV coefficients between covariance matrices for each state
     print("(Step 3-1) Summarizing state covariance RV coefficients ...")

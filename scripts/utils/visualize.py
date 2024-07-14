@@ -105,6 +105,37 @@ def _format_colorbar_ticks(ax):
         )
     
     return None
+
+def load_accessible_colors(palette_name="tol_bright", sel_ind=None):
+    """Loads colour-blind-friendly colours from a designated colour palette.
+
+    Parameters
+    ----------
+    palette_name : str
+        Name of the colour palette to load colours from. Defaults to `tol_bright`.
+    sel_ind : list of int
+        Indices to select or redorder specific colours. Defaults to None.
+
+    Returns
+    -------
+    palette : list of str
+        A list of accessible colours in hex codes.
+    """
+
+    palette = {
+        "tol_bright": ["#4477AA", "#66CCEE", "#228833", "#CCBB44", 
+                       "#EE6677", "#AA3377", "#BBBBBB"],
+        "tol_vibrant": ["#0077BB", "#33BBEE", "#009988", "#EE7733", 
+                        "#CC3311", "#EE3377", "#BBBBBB"],
+        "tol_muted": ["#332288", "#88CCEE", "#44AA99", "#117733", 
+                      "#999933", "#DDCC77", "#CC6677", "#882255", 
+                      "#AA4499", "#DDDDDD"],
+        "okabe_ito": ["#E69F00", "#56B4E9", "#009E73", "#F0E442", 
+                      "#0072B2", "#D55E00", "#CC79A7", "#000000"],
+    }
+    if sel_ind:
+        return [palette[palette_name][ind] for ind in sel_ind]
+    return palette[palette_name]
     
 def plot_loss_curve(loss, x_step=5, save_dir=None):
     """Plots a training/validation/test loss curve.
