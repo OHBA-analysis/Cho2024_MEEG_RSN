@@ -323,7 +323,7 @@ def multi_class_prediction(X, y, classifier, n_splits, seed=0):
     test_score = test_scores.mean()
     print(
         "The mean test accuracy using nested cross-validation: "
-        f"{test_scores.mean():.3f} +/- {test_scores.std():.3f}"
+        f"{test_scores.mean():.3f} +/- {test_scores.std():.3f} (n={len(test_scores)})"
     )
 
     return test_score
