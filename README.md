@@ -8,9 +8,11 @@ This repository contains the scripts and data for reproducing results in the "Co
 
 This repository contains all the scripts necessary to reproduce the analysis and figures presented in the manuscript. It is divided into three main directories:
 
-1. `data`: Contains the optimal HMM models trained on the MEG Cam-CAN and EEG LEMON datasets.
-2. `data_preparation`: Contains the scripts for preprocessing and source reconstructing the sensor-level M/EEG data.
-3. `scripts`: Contains the scripts for training TDE-HMM models and analysing static and dynamic M/EEG resting-state networks.
+| Directory                       | Description                                                                                                     |
+| :------------------------------ | :-------------------------------------------------------------------------------------------------------------- |
+| `data`                          | Contains the optimal HMM models trained on the MEG Cam-CAN and EEG LEMON datasets.                              |
+| `data_preparation`              | Contains the scripts for preprocessing and source reconstructing the sensor-level M/EEG data.                   |
+| `scripts`                       | Contains the scripts for training TDE-HMM models and analysing static and dynamic M/EEG resting-state networks. |
 
 **NOTE:** Most of the codes within this repository were executed on the Oxford Biomedical Research Computing (BMRC) servers. While individual threads were allocated varying CPUs and GPUs, general information about the BRMC resources can be found at [_Using the BMRC Cluster with Slurm_](https://www.medsci.ox.ac.uk/for-staff/resources/bmrc/using-the-bmrc-cluster-with-slurm) and [_GPU Resources_](https://www.medsci.ox.ac.uk/for-staff/resources/bmrc/gpu-resources).
 
