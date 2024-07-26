@@ -14,6 +14,8 @@ This repository contains all the scripts necessary to reproduce the analysis and
 | `data_preparation`              | Contains the scripts for preprocessing and source reconstructing the sensor-level M/EEG data.                   |
 | `scripts`                       | Contains the scripts for training TDE-HMM models and analysing static and dynamic M/EEG resting-state networks. |
 
+For detailed descriptions of the scripts in each directory, please consult the README file located within each respective folder.
+
 **NOTE:** Most of the codes within this repository were executed on the Oxford Biomedical Research Computing (BMRC) servers. While individual threads were allocated varying CPUs and GPUs, general information about the BRMC resources can be found at [_Using the BMRC Cluster with Slurm_](https://www.medsci.ox.ac.uk/for-staff/resources/bmrc/using-the-bmrc-cluster-with-slurm) and [_GPU Resources_](https://www.medsci.ox.ac.uk/for-staff/resources/bmrc/gpu-resources).
 
 ## 🎯 Requirements
