@@ -25,7 +25,7 @@ For the MEG Cam-CAN dataset, we have four main scripts and a supplementary scrip
 | `compare_length.py`<sup>‡</sup> | Compare sample lengths of the age-matched LEMON and Cam-CAN datasets.                             |
 
 1. For the individual sMRI reconstruction approach, follow the pipeline: `1 → 2 → 3 → 4`.
-2. For the MNI template reconstruction approach, follow the pipeline: `1 → 3‑1 → 5`.
+2. For the MNI template reconstruction approach, follow the pipeline: `1 → 3‑1 → 4`.
 
 **NOTE #1:** For the first approach, note that the source reconstruction process is split into two separate scripts. 
 This division was necessary to implement a customised coregistration functionality, which accommodates individual sMRI image properties 
