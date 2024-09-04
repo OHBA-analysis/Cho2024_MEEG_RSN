@@ -1,6 +1,8 @@
 # Cho2024_MEEG_RSN
 
-This repository contains the scripts and data for reproducing results in the "Comparison between EEG and MEG of static and dynamic resting-state networks" manuscript.
+This repository contains the scripts and data for reproducing results in the "Comparison between EEG and MEG of static and dynamic resting-state networks" paper.
+
+🔗 Comparison between EEG and MEG of static and dynamic resting-state networks (DOI: [10.1002/hbm.70018](https://doi.org/10.1002/hbm.70018))
 
 💡 Please email SungJun Cho at sungjun.cho@ndcn.ox.ac.uk or simply raise GitHub Issues if you have any questions or concerns.
 
