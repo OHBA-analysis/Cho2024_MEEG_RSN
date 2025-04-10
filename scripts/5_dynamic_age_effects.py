@@ -154,7 +154,7 @@ if __name__ == "__main__":
         print("\tSignificant states: ", np.arange(1, n_states + 1)[pval < 0.05])
         pvalues_all.append(pval)
 
-    # Visualize violing plots for each state with if group difference exists
+    # Visualize violin plots for each state with if group difference exists
     pvalues_all = np.array(pvalues_all)
     sig_states = np.arange(n_states)[np.sum(pvalues_all < 0.05, axis=0) != 0]
     group_lbl = ["Young" if val == 2 else "Old" for val in group_assignments]
