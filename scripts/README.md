@@ -43,18 +43,17 @@ For a use case of how to randomly split a dataset in half, refer to the `random_
 
 For the data analysis, we have seven main scripts:
 
-| Scripts                           | Description                                                                                                 |
-| :-------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `1_static_rsn.py`                 | Compares static RSN features of the EEG and MEG data.                                                       |
-| `2_dynamic_rsn.py`                | Compares dynamic RSN features of the EEG and MEG data.                                                      |
-| `3_split_half_reproducibility.py` | Examines the reproducibility of the inferred RSNs within and across two data modalities.                    |
-| `4_stataic_age_effects.py`        | Compares group-level age effects between the static RSNs of the EEG and MEG data.                           |
-| `5_dynamic_age_effects.py`        | Compares group-level age effects between the dynamic RSNs of the EEG and MEG data.                          |
-| `6_age_predictions.py`            | Predicts age groups with a logistic regression classifier using M/EEG RSN features.                         |
-| `7_compare_predictions.py`        | Compares predictive accuracies across two modalities and between model runs with and without subject sMRIs. |
+| Scripts                           | Description                                                                                                 | Figures       |
+| :-------------------------------- | :---------------------------------------------------------------------------------------------------------- | :------------ |
+| `1_static_rsn.py`                 | Compares static RSN features of the EEG and MEG data.                                                       | 2, 3, A3      |
+| `2_dynamic_rsn.py`                | Compares dynamic RSN features of the EEG and MEG data.                                                      | 5, 6a, 6b, A5 |
+| `3_split_half_reproducibility.py` | Examines the reproducibility of the inferred RSNs within and across two data modalities.                    | 6c, 6d        |
+| `4_stataic_age_effects.py`        | Compares group-level age effects between the static RSNs of the EEG and MEG data.                           | 4, A2, A4     |
+| `5_dynamic_age_effects.py`        | Compares group-level age effects between the dynamic RSNs of the EEG and MEG data.                          | 7, A6, A7      |
+| `6_age_predictions.py`            | Predicts age groups with a logistic regression classifier using M/EEG RSN features.                         | 8             |
+| `7_compare_predictions.py`        | Compares predictive accuracies across two modalities and between model runs with and without subject sMRIs. | 8             |
 
-**NOTE:** Although the scripts are numbered and generally follow the order of figures in the paper, the numeric prefixes do not strictly 
-correspond to figure numbers.
+**NOTE:** The figures corresponding to each script are listed in the last column; figures in the Supporting Information are indicated by the prefix "A". For Figure A1, please refer to the script located at [`data_preparation/lemon/5_match_age_distribution.py`](https://github.com/OHBA-analysis/Cho2024_MEEG_RSN/blob/main/data_preparation/lemon/5_match_age_distribution.py).
 
 ### 🙋‍♂️ FAQ: What about the `utils` subdirectory?
 The `utils` subdirectory contains essential functions required to run the scripts summarised above. Each script in `utils` includes multiple 
