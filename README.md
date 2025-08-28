@@ -36,4 +36,4 @@ openpyxl==3.1.2
 ```
 
 ## 🪪 License
-Copyright (c) 2024 [SungJun Cho](https://github.com/scho97) and [OHBA Analysis Group](https://github.com/OHBA-analysis). `Cho2024_MEEG_RSN` is a free and open-source software licensed under the [MIT License](https://github.com/scho97/CompareModality/blob/main/LICENSE).
+Copyright (c) 2024 [SungJun Cho](https://github.com/scho97) and [OHBA Analysis Group](https://github.com/OHBA-analysis). `Cho2024_MEEG_RSN` is a free and open-source software licensed under the [MIT License](https://github.com/OHBA-analysis/Cho2024_MEEG_RSN/blob/main/LICENSE).
